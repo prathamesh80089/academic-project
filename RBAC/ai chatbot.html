@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Powered Medical Chatbot</title>
+<style>
+body { font-family: Arial; background: #f0f8ff; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center;}
+.container { background:#fff; padding:25px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.2); max-width:600px; width:100%; }
+h2 { color:#0275d8; text-align:center; }
+#chatbox { width:100%; height:300px; border:1px solid #ccc; padding:10px; overflow-y:auto; background:#f9f9f9; border-radius:8px; margin-bottom:10px;}
+#chatInput { width:80%; padding:10px; }
+#sendBtn { width:18%; padding:10px; background:#0275d8; color:white; border:none; border-radius:5px; cursor:pointer;}
+#sendBtn:hover { background:#025aa5; }
+.user-msg { color: #333; margin:5px 0; }
+.bot-msg { color: #0275d8; margin:5px 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>AI-Powered Medical Chatbot</h2>
+<div id="chatbox"></div>
+<input type="text" id="chatInput" placeholder="Ask a health question...">
+<button id="sendBtn">Send</button>
+</div>
+
+<script>
+const chatbox = document.getElementById("chatbox");
+const inputField = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+
+// Replace with your OpenAI API key
+const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY";
+
+sendBtn.addEventListener("click", async () => {
+    const userInput = inputField.value.trim();
+    if (!userInput) return;
+
+    // Display user message
+    const userMsgDiv = document.createElement("div");
+    userMsgDiv.className = "user-msg";
+    userMsgDiv.textContent = "You: " + userInput;
+    chatbox.appendChild(userMsgDiv);
+
+    inputField.value = "";
+    chatbox.scrollTop = chatbox.scrollHeight;
+
+    // Call OpenAI API
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + OPENAI_API_KEY
+        },
+        body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: userInput }]
+        })
+    });
+
+    const data = await response.json();
+    const botReply = data.choices[0].message.content;
+
+    // Display bot response
+    const botMsgDiv = document.createElement("div");
+    botMsgDiv.className = "bot-msg";
+    botMsgDiv.textContent = "Bot: " + botReply;
+    chatbox.appendChild(botMsgDiv);
+    chatbox.scrollTop = chatbox.scrollHeight;
+});
+</script>
+
+</body>
+</html>

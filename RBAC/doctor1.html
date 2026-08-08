@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Details - RBAC Medical</title>
+<style>
+  body { 
+    font-family: Arial, sans-serif; 
+    background: linear-gradient(135deg, #b2dfdb, #e6f4ea); 
+    padding: 50px 20px; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    animation: fadeInBody 1s ease forwards;
+  }
+
+  @keyframes fadeInBody {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h2 { 
+    color:#2e7d32; 
+    text-align:center; 
+    margin-bottom:40px; 
+    font-size:2rem; 
+    animation: slideDown 0.8s ease forwards;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card { 
+    max-width:500px; 
+    width: 100%;
+    background:#fff; 
+    padding:30px; 
+    border-radius:12px; 
+    box-shadow:0 8px 20px rgba(0,128,0,0.2); 
+    text-align:center;
+    transform: scale(0.8);
+    opacity: 0;
+    animation: popIn 0.8s forwards 0.5s;
+  }
+
+  @keyframes popIn {
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  p { 
+    font-size: 1rem; 
+    margin: 12px 0; 
+    transition: transform 0.3s, color 0.3s;
+    cursor: default;
+  }
+
+  p:hover {
+    color: #004aad;
+    transform: translateX(5px);
+  }
+
+  .back-btn {
+    margin-top: 30px;
+    padding: 10px 20px;
+    background: #2e7d32;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+  }
+
+  .back-btn:hover {
+    background: #1b4f1b;
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+<h2>Doctor Details</h2>
+<div class="card" id="doctorCard">
+  <!-- Doctor info will appear here -->
+</div>
+
+<button class="back-btn" onclick="goBack()">Back to Appointments</button>
+
+<script>
+const doctor = JSON.parse(localStorage.getItem('selectedDoctor') || '{}');
+const card = document.getElementById('doctorCard');
+
+if(doctor.name){
+  card.innerHTML = `
+    <p><strong>Name:</strong> ${doctor.name}</p>
+    <p><strong>Specialization:</strong> ${doctor.specialization}</p>
+    <p><strong>Experience:</strong> ${doctor.experience}</p>
+    <p><strong>Availability:</strong> ${doctor.availability}</p>
+  `;
+} else {
+  card.innerHTML = `<p>No doctor selected.</p>`;
+}
+
+function goBack(){
+  window.location.href = "appointment.html";
+}
+</script>
+
+</body>
+</html>

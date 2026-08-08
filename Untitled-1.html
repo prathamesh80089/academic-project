@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Medical - Patient Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* Global */
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif;}
+body { background:#f1f5f9; color:#333; min-height:100vh; display:flex; }
+/* Login */
+#loginPage { width:100vw; height:100vh; display:flex; justify-content:center; align-items:center; }
+.login-container { background:#fff; padding:40px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); width:300px; text-align:center; }
+.login-container h1 { margin-bottom:20px; color:#183153; }
+input, select, button { width:100%; padding:10px; margin:10px 0; border-radius:8px; border:1px solid #ccc; }
+button { background:#183153; color:white; border:none; cursor:pointer; }
+button:hover { background:#0f2642; transition:0.3s; }
+/* Dashboard */
+#dashboardPage { display:flex; width:100%; height:100vh; }
+.sidebar { width:250px; background:#183153; color:#fff; padding:20px 0; display:flex; flex-direction:column; }
+.sidebar h2 { font-size:1.5rem; text-align:center; margin-bottom:2rem; }
+.sidebar ul { list-style:none; padding:0; }
+.sidebar ul li { padding:15px 20px; cursor:pointer; transition: background 0.3s ease; }
+.sidebar ul li:hover { background:#0f2642; }
+.sidebar ul li.logout { margin-top:auto; color:#f87171; }
+.main-content { flex:1; padding:30px; overflow-y:auto; }
+.header { display:flex; justify-content:space-between; align-items:center; }
+.header h1 { font-size:1.8rem; font-weight:600; }
+.header h1 span { color:#3b82f6; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-top:20px; }
+.card { background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); animation:fadeInUp 0.6s ease; }
+.card h3 { font-size:1rem; font-weight:600; margin-bottom:10px; }
+.card p { font-size:0.9rem; color:#555; }
+.chart-container { width:100%; height:250px; margin-top:20px; }
+.section { display:none; }
+#alerts { background:#fff3cd; padding:15px; border-radius:8px; margin-top:10px; }
+@keyframes fadeInUp { 0%{opacity:0; transform:translateY(10px);} 100%{opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-container">
+      <h1>Login</h1>
+      <input type="text" id="username" placeholder="Username">
+      <select id="role">
+          <option value="patient">Patient</option>
+          <option value="doctor">Doctor</option>
+      </select>
+      <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div id="dashboardPage" style="display:none;">
+  <div class="sidebar">
+    <h2>Patient</h2>
+    <ul>
+      <li data-section="dashboard">🏠 Dashboard</li>
+      <li data-section="appointments">📅 My Appointments</li>
+      <li data-section="prescriptions">💊 Prescriptions</li>
+      <li data-section="records">📋 Health Records</li>
+      <li data-section="progressReport">📈 Progress Report</li>
+      <li data-section="messages">💬 Messages</li>
+      <li data-section="settings">⚙ Settings</li>
+      <li class="logout">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <h1>Welcome, <span></span></h1>
+      <div class="profile">👤 Patient</div>
+    </div>
+
+    <!-- Sections -->
+    <div id="dashboard" class="section">
+      <div class="cards">
+        <div class="card"><h3>Upcoming Appointment</h3><p>Dr. Sawant<br>20 Sept 2025 at 3:00 PM</p></div>
+        <div class="card"><h3>Recent Prescription</h3><p>Paracetamol 500mg - 2 times a day</p></div>
+        <div class="card"><h3>Health Record Summary</h3><p>BP: 120/80 mmHg<br>Sugar: Normal</p></div>
+      </div>
+      <div class="chart-container"><canvas id="progressChart"></canvas></div>
+    </div>
+
+    <div id="alertsSection" class="section">
+      <h2>Notifications / Alerts</h2>
+      <div id="alerts"></div>
+      <button onclick="checkAlerts()">Check My Alerts</button>
+    </div>
+
+    <div id="settings" class="section">
+      <div class="cards">
+        <div class="card">
+          <h3>Update Role</h3>
+          <select id="roleSelect">
+            <option value="patient">Patient</option>
+            <option value="doctor">Doctor</option>
+          </select>
+          <button onclick="updateRole()">Update Role</button>
+          <button onclick="revokeRole()">Revoke Access</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------- LOGIN ----------------
+function login(){
+    const username = document.getElementById('username').value.trim();
+    const role = document.getElementById('role').value;
+    if(username === ''){ alert("Enter username"); return; }
+    localStorage.setItem('username', username);
+    localStorage.setItem('userRole', role);
+
+    if(role === 'patient'){
+        showDashboard();
+    } else {
+        alert("Doctor dashboard not implemented yet.");
+    }
+}
+
+// ---------------- DASHBOARD DISPLAY ----------------
+function showDashboard(){
+    document.getElementById('loginPage').style.display='none';
+    document.getElementById('dashboardPage').style.display='flex';
+    const username = localStorage.getItem('username');
+    document.querySelector('.header h1 span').textContent = username;
+    document.getElementById('dashboard').style.display='block';
+    renderChart();
+    renderAlerts();
+}
+
+// ---------------- ROLE CHECK ----------------
+function enforceRole(){
+    const role = localStorage.getItem('userRole');
+    if(role !== 'patient'){
+        alert("Access denied. Redirecting to login.");
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        location.reload();
+    }
+}
+window.onload = () => {
+    if(localStorage.getItem('userRole')==='patient'){
+        showDashboard();
+    }
+};
+
+// ---------------- SIDEBAR NAVIGATION ----------------
+document.querySelectorAll('.sidebar ul li[data-section]').forEach(item => {
+    item.addEventListener('click', () => {
+        enforceRole();
+        const sectionId = item.getAttribute('data-section');
+        document.querySelectorAll('.section').forEach(sec=>sec.style.display='none');
+        if(sectionId==='progressReport'){
+            alert("Redirect to progress report page (not implemented)");
+        } else {
+            document.getElementById(sectionId).style.display='block';
+        }
+    });
+});
+
+// ---------------- LOGOUT ----------------
+document.querySelector('.logout').addEventListener('click', ()=>{
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('username');
+    location.reload();
+});
+
+// ---------------- PATIENT DATA ----------------
+const patientData = {
+    weight:[72,71.5,71,70.5,70],
+    bpSystolic:[125,124,123,122,121],
+    bpDiastolic:[80,79,78,77,76],
+    sugar:[95,94,93,92,91],
+    months:["Jan","Feb","Mar","Apr","May"]
+};
+
+// ---------------- CHART ----------------
+function renderChart(){
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    new Chart(ctx,{
+        type:'line',
+        data:{
+            labels:patientData.months,
+            datasets:[
+                {label:'Weight (kg)', data:patientData.weight, borderColor:'green', fill:false, tension:0.3},
+                {label:'BP Systolic', data:patientData.bpSystolic, borderColor:'red', fill:false, tension:0.3},
+                {label:'BP Diastolic', data:patientData.bpDiastolic, borderColor:'orange', fill:false, tension:0.3},
+                {label:'Sugar (mg/dL)', data:patientData.sugar, borderColor:'purple', fill:false, tension:0.3}
+            ]
+        },
+        options:{responsive:true, plugins:{title:{display:true,text:'My Health Progress'}}}
+    });
+}
+
+// ---------------- ALERTS ----------------
+function renderAlerts(){
+    const alertsDiv = document.getElementById('alerts');
+    let alerts = [];
+    if(patientData.bpSystolic[patientData.bpSystolic.length-1]>130) alerts.push("High BP detected.");
+    if(patientData.sugar[patientData.sugar.length-1]>110) alerts.push("Sugar level high.");
+    if(patientData.weight[0]-patientData.weight[patientData.weight.length-1]>3) alerts.push("Weight decreased significantly.");
+    if(alerts.length===0) alerts.push("All vitals are normal.");
+    alertsDiv.innerHTML = `<ul>${alerts.map(a=>`<li>${a}</li>`).join('')}</ul>`;
+}
+function checkAlerts(){ renderAlerts(); }
+
+// ---------------- ROLE UPDATE & REVOCATION ----------------
+function updateRole(){
+    const newRole = document.getElementById('roleSelect').value;
+    localStorage.setItem('userRole', newRole);
+    alert("Role updated to: "+newRole);
+    if(newRole!=='patient'){ enforceRole(); }
+}
+function revokeRole(){
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('username');
+    alert("Access revoked. Redirecting to login.");
+    location.reload();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patients - MedApp</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom right, #e6f4ea, #b2dfdb);
+    padding-top: 70px;
+  }
+
+  .navbar { background-color: #2e7d32 !important; }
+  .navbar-brand, .nav-link { color: #fff !important; }
+
+  h2 { color: #2e7d32; text-align: center; margin-bottom: 30px; }
+
+  table {
+    background-color: #ffffffdd;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,128,0,0.1);
+  }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="dashboard.html">MedApp Dashboard</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="appointment.html">Appointments</a></li>
+        <li class="nav-item"><a class="nav-link active" href="patients.html">Patients</a></li>
+        <li class="nav-item"><a class="nav-link" href="doctors.html">Doctors</a></li>
+        <li class="nav-item"><a class="nav-link" href="settings.html">Settings</a></li>
+        <li class="nav-item"><a class="nav-link text-warning" href="index.html">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Patient Information</h2>
+
+  <!-- Table to display patient info -->
+  <div class="table-responsive mt-4">
+    <table class="table table-striped table-bordered" id="patientTable">
+      <thead class="table-success">
+        <tr>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Phone</th>
+          <th>Doctor</th>
+          <th>Date</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Patient info will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Load stored patient appointments from localStorage
+  window.onload = function() {
+    const patients = JSON.parse(localStorage.getItem("appointments") || "[]");
+    const tableBody = document.getElementById("patientTable").querySelector("tbody");
+
+    patients.forEach(patient => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${patient.name}</td>
+        <td>${patient.address}</td>
+        <td>${patient.phone}</td>
+        <td>${patient.doctor}</td>
+        <td>${patient.date}</td>
+        <td>${patient.reason}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+</script>
+
+</body>
+</html>

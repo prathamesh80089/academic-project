@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>RBAC Medical — Enhanced Performance Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#004aad; --muted:#6b7280; --card-bg:#ffffffdd; --glass:rgba(255,255,255,0.6);
+  --danger:#e11d48; --warn:#f59e0b; --ok:#10b981;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;padding:0}
+body{background:linear-gradient(180deg,#f3f6ff, #f9fafb);min-height:100vh;color:#0f172a;padding:20px;}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+header h1{font-size:1.25rem;color:var(--accent)}
+.controls{display:flex;gap:8px;align-items:center}
+button.btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600}
+button.ghost{background:transparent;border:1px solid #e6eefc;color:var(--accent)}
+.layout{display:grid;grid-template-columns:1fr 420px;gap:16px}
+@media (max-width:1000px){ .layout{grid-template-columns:1fr} }
+.grid{display:grid;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:900px){ .cards{grid-template-columns:repeat(1,1fr)} }
+.card{background:var(--card-bg);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(13,34,66,0.04)}
+.card h3{color:var(--muted);font-size:0.85rem;margin-bottom:8px}
+.card .value{font-size:1.4rem;font-weight:700;color:#0f172a}
+.chart-card{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.chart-area{width:68%}
+.mini{width:28%;text-align:right}
+.doctor-table{width:100%;border-collapse:collapse;margin-top:8px}
+.doctor-table th, .doctor-table td{padding:8px 10px;text-align:left;border-bottom:1px solid #eef2ff}
+.doctor-table th{font-size:0.85rem;color:var(--muted);cursor:pointer}
+.spark{width:100px;height:30px}
+.alerts-list{display:grid;gap:10px}
+.alert-row{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:#fff}
+.alert-left{display:flex;gap:12px;align-items:center}
+.avatar{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent)}
+.risk-high{border-left:6px solid var(--danger)}
+.risk-mid{border-left:6px solid var(--warn)}
+.risk-low{border-left:6px solid var(--ok)}
+.muted{color:var(--muted);font-size:0.9rem}
+.small{font-size:0.85rem}
+.util-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.util-bar{height:10px;background:#eef2ff;border-radius:999px;flex:1;overflow:hidden}
+.util-fill{height:100%;border-radius:999px;width:40%}
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:100}
+.modal-content{background:#fff;padding:20px;border-radius:8px;width:90%;max-width:400px}
+.modal-content h3{margin-bottom:10px}
+.modal-content button{margin-top:12px;width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer}
+.modal-content button:hover{opacity:0.9}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RBAC Medical — Enhanced Dashboard</h1>
+  <div class="controls">
+    <button class="btn" id="simulateBtn">Simulate Update</button>
+    <button class="ghost" id="refreshBtn">Refresh Data</button>
+    <label style="font-size:0.85rem;display:flex;align-items:center">
+      <input type="checkbox" id="autoRefresh"/> Auto Refresh
+    </label>
+    <!-- ✅ Redirect Button -->
+    <button class="btn" onclick="goToDoctorDashboard()">Doctor Dashboard</button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="grid">
+    <div class="cards">
+      <div class="card">
+        <h3>Bed Occupancy</h3>
+        <div class="value" id="bedOccVal">72% (72/100)</div>
+      </div>
+      <div class="card">
+        <h3>Today's Revenue</h3>
+        <div class="value" id="revenueVal">₹ 1,24,500</div>
+      </div>
+      <div class="card">
+        <h3>Avg Doctor Utilization</h3>
+        <div class="value" id="docUtilVal">63%</div>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-area">
+        <canvas id="revenueChart" height="140"></canvas>
+      </div>
+      <div class="mini">
+        <h3 class="small">Bed Occupancy</h3>
+        <canvas id="bedChart" width="120" height="120"></canvas>
+        <div class="muted small" style="margin-top:8px">ICU: <strong id="icuUsage">18</strong> / Ward: <strong id="wardUsage">54</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Doctor Utilization (this week)</h3>
+      <canvas id="utilChart" height="100"></canvas>
+      <div id="utilBars" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Doctor Performance Metrics</h3>
+      <table class="doctor-table" id="doctorTable">
+        <thead>
+          <tr><th data-sort="name">Doctor</th><th data-sort="patients">Patients Seen</th><th data-sort="followUp">Follow-up Rate</th><th>Recent</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Predictive Alerts — High Risk Patients</h3>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="btn" onclick="filterAlerts('High')">High</button>
+        <button class="btn" onclick="filterAlerts('Medium')">Medium</button>
+        <button class="btn" onclick="filterAlerts('Low')">Low</button>
+        <button class="ghost" onclick="filterAlerts('All')">All</button>
+      </div>
+      <div class="alerts-list" id="alertsList"></div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h3>Quick Summary</h3>
+      <p class="muted small">Live snapshot of hospital operations</p>
+      <ul style="margin-top:10px">
+        <li class="small">Beds total: <strong id="totalBeds">100</strong></li>
+        <li class="small">Occupied: <strong id="occupiedBeds">72</strong></li>
+        <li class="small">Available: <strong id="availBeds">28</strong></li>
+        <li class="small">Revenue (MTD): <strong id="mtdRev">₹ 12,45,000</strong></li>
+        <li class="small">Active doctors: <strong id="activeDocs">12</strong></li>
+      </ul>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Tools</h3>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" id="exportBtn">Export CSV</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Doctor Detail Modal -->
+<div class="modal" id="doctorModal">
+  <div class="modal-content">
+    <h3 id="modalDocName"></h3>
+    <p>Patients Seen: <span id="modalPatients"></span></p>
+    <p>Follow-up Rate: <span id="modalFollow"></span>%</p>
+    <canvas id="modalSpark" height="100"></canvas>
+    <button onclick="closeDoctorModal()">Close</button>
+  </div>
+</div>
+
+<script>
+let sample = {
+  beds:{total:100, icu:20, ward:80, occupied:72},
+  revenue:{labels:["Aug 25","Aug 26","Aug 27"],values:[95000,104000,98000]},
+  doctors:[
+    {id:1,name:"Dr. A. Kulkarni",patients:42,followUpPct:18,recentVisits:[5,6,7,4,6,8]},
+    {id:2,name:"Dr. M. Desai",patients:36,followUpPct:22,recentVisits:[3,4,6,4,5,6]},
+    {id:3,name:"Dr. R. Patel",patients:58,followUpPct:12,recentVisits:[8,9,6,10,7,8]}
+  ],
+  patientsVitals:[
+    {id:101,name:"Arjun R",hr:110,bp:150,spo2:94,temp:37.8},
+    {id:102,name:"Sneha P",hr:85,bp:120,spo2:98,temp:36.6},
+    {id:103,name:"Kiran S",hr:130,bp:170,spo2:88,temp:39.0}
+  ]
+};
+
+function goToDoctorDashboard() {
+  window.location.href = "doctor-dashboard.html";
+}
+
+function computeRisk(p){
+  let score=0;
+  if(p.temp>=39)score+=40;else if(p.temp>=38)score+=20;
+  if(p.hr>=130)score+=30;else if(p.hr>=110)score+=15;
+  if(p.bp>=160)score+=25;else if(p.bp>=140)score+=10;
+  if(p.spo2<90)score+=35;else if(p.spo2<93)score+=15;
+  return Math.min(100,Math.max(0,Math.round(score)));
+}
+function riskLevel(score){if(score>=60)return {level:"High",css:"risk-high"};if(score>=30)return {level:"Medium",css:"risk-mid"};return {level:"Low",css:"risk-low"};}
+
+function renderSummary(){
+  document.getElementById('totalBeds').textContent=sample.beds.total;
+  document.getElementById('occupiedBeds').textContent=sample.beds.occupied;
+  document.getElementById('availBeds').textContent=sample.beds.total-sample.beds.occupied;
+  document.getElementById('bedOccVal').textContent=Math.round(sample.beds.occupied/sample.beds.total*100)+"% ("+sample.beds.occupied+"/"+sample.beds.total+")";
+  document.getElementById('revenueVal').textContent='₹ '+sample.revenue.values[sample.revenue.values.length-1].toLocaleString();
+  let avgUtil=Math.round(sample.doctors.reduce((s,d)=>(s+d.patients),0)/(sample.doctors.length*80)*100);
+  document.getElementById('docUtilVal').textContent=(avgUtil>100?100:avgUtil)+"%";
+  document.getElementById('mtdRev').textContent='₹ '+sample.revenue.values.reduce((a,b)=>a+b,0).toLocaleString();
+  document.getElementById('activeDocs').textContent=sample.doctors.length;
+}
+
+let revenueChart, bedChart, utilChart;
+function setupCharts(){
+  revenueChart=new Chart(document.getElementById('revenueChart').getContext('2d'),{
+    type:'line',
+    data:{labels:sample.revenue.labels,datasets:[{label:'Daily Revenue',data:sample.revenue.values,fill:true,tension:0.3,backgroundColor:'rgba(64,114,255,0.08)',borderColor:'rgba(64,114,255,0.95)',pointRadius:3}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'₹'+v},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}
+  });
+  bedChart=new Chart(document.getElementById('bedChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Occupied','Available'],datasets:[{data:[sample.beds.occupied,sample.beds.total-sample.beds.occupied],backgroundColor:['#ff7a7a','#e6f2ff']}]},
+    options:{cutout:'70%',plugins:{legend:{display:false}}}
+  });
+  utilChart=new Chart(document.getElementById('utilChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:sample.doctors.map(d=>d.name.split(' ')[1]||d.name),datasets:[{data:sample.doctors.map(d=>Math.round(d.patients/7)),backgroundColor:'#60a5fa'}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });
+  renderUtilBars();
+}
+
+function renderUtilBars(){
+  const container=document.getElementById('utilBars');container.innerHTML='';
+  sample.doctors.forEach(doc=>{
+    const fillPerc=Math.min(100,Math.round(doc.patients/60*100));
+    let color=fillPerc>80?'#f87171':fillPerc>50?'#facc15':'#10b981';
+    const row=document.createElement('div');
+    row.style.marginBottom='8px';
+    row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:4px">
+      <div style="font-size:0.9rem;cursor:pointer" onclick="openDoctorModal(${doc.id})">${doc.name}</div>
+      <div style="font-size:0.85rem;color:var(--muted)">${doc.patients} pts</div></div>
+      <div class="util-bar"><div class="util-fill" style="width:${fillPerc}%;background:${color}"></div></div>`;
+    container.appendChild(row);
+  });
+}
+
+function renderDoctorTable(){
+  const tbody=document.querySelector('#doctorTable tbody');tbody.innerHTML='';
+  sample.doctors.forEach((d,idx)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="width:40%;cursor:pointer" onclick="openDoctorModal(${d.id})">${d.name}</td>
+      <td>${d.patients}</td><td>${d.followUpPct}%</td>
+      <td><canvas id="spark-${idx}" class="spark"></canvas></td>`;
+    tbody.appendChild(tr);
+    new Chart(document.getElementById(`spark-${idx}`).getContext('2d'),{type:'line',data:{labels:d.recentVisits.map((_,i)=>i+1),datasets:[{data:d.recentVisits,borderColor:'#60a5fa',tension:0.3,pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}},elements:{line:{borderWidth:2}}}});
+  });
+}
+
+let alertsFiltered=null;
+function renderAlerts(){
+  const list=document.getElementById('alertsList');list.innerHTML='';
+  const withRisk=sample.patientsVitals.map(p=>{const score=computeRisk(p);return{...p,riskScore:score,risk:riskLevel(score)}})
+    .sort((a,b)=>b.riskScore-a.riskScore);
+  withRisk.forEach(p=>{
+    if(alertsFiltered&&p.risk.level!==alertsFiltered)return;
+    const div=document.createElement('div');div.className='alert-row '+p.risk.css;
+    div.innerHTML=`<div class="alert-left"><div class="avatar">${p.name.split(' ')[0].slice(0,2).toUpperCase()}</div>
+      <div><div style="font-weight:700">${p.name} <span style="font-weight:600;color:var(--muted);font-size:0.85rem">#${p.id}</span></div>
+      <div class="muted small">HR ${p.hr} | BP ${p.bp} | SpO₂ ${p.spo2}% | Temp ${p.temp}°C</div></div></div>
+      <div style="text-align:right"><div style="font-weight:700">${p.risk.level} Risk</div>
+      <div class="small muted">Score: ${p.riskScore}</div>
+      <button class="btn" style="margin-top:6px;padding:6px 8px;font-size:0.85rem" onclick="acknowledge(${p.id})">Acknowledge</button></div>`;
+    list.appendChild(div);
+  });
+}
+
+function filterAlerts(level){alertsFiltered=level==='All'?null:level;renderAlerts();}
+
+function acknowledge(id){alert('Acknowledged alert for patient '+id);}
+
+function openDoctorModal(id){
+  const doc=sample.doctors.find(d=>d.id===id);
+  const modal=document.getElementById('doctorModal');
+  document.getElementById('modalDocName').textContent=doc.name;
+  document.getElementById('modalPatients').textContent=doc.patients;
+  document.getElementById('modalFollow').textContent=doc.followUpPct;
+  modal.style.display='flex';
+  new Chart(document.getElementById('modalSpark').getContext('2d'),{type:'line',data:{labels:doc.recentVisits.map((_,i)=>i+1),datasets:[{data:doc.recentVisits,borderColor:'#3b82f6',tension:0.3,pointRadius:3}]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+}
+function closeDoctorModal(){document.getElementById('doctorModal').style.display='none';}
+
+document.getElementById('simulateBtn').onclick=()=>{
+  sample.beds.occupied=Math.min(sample.beds.total,Math.floor(Math.random()*100));
+  sample.revenue.values.push(Math.floor(Math.random()*50000)+95000);
+  sample.doctors.forEach(d=>{d.patients=Math.floor(Math.random()*70);d.followUpPct=Math.floor(Math.random()*25)+10;});
+  renderSummary();renderUtilBars();renderDoctorTable();renderAlerts();
+  revenueChart.data.labels.push('New');revenueChart.data.datasets[0].data.push(sample.revenue.values[sample.revenue.values.length-1]);revenueChart.update();
+  bedChart.data.datasets[0].data=[sample.beds.occupied,sample.beds.total-sample.beds.occupied];bedChart.update();
+};
+document.getElementById('refreshBtn').onclick=()=>location.reload();
+
+document.getElementById('exportBtn').onclick=()=>{
+  let csv='Doctor,Patients,Follow-up%\\n'+sample.doctors.map(d=>`${d.name},${d.patients},${d.followUpPct}`).join('\\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='doctor_performance.csv';a.click();URL.revokeObjectURL(url);
+};
+
+document.getElementById('autoRefresh').onchange=function(){
+  if(this.checked){this.interval=setInterval(()=>document.getElementById('simulateBtn').click(),5000);}
+  else{clearInterval(this.interval);}
+};
+
+renderSummary();setupCharts();renderDoctorTable();renderAlerts();
+</script>
+</body>
+</html>

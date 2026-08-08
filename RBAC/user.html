@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Users</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {margin:0; font-family:'Inter',sans-serif; display:flex; background:#f1f5f9;}
+  .sidebar {width:250px;background:#183153;color:#fff;display:flex;flex-direction:column;min-height:100vh;padding:20px 0;}
+  .sidebar h2 {text-align:center;font-size:1.5rem;margin-bottom:2rem;}
+  .sidebar ul {list-style:none;}
+  .sidebar ul li {padding:15px 20px;cursor:pointer;transition:background .3s;display:flex;align-items:center;}
+  .sidebar ul li:hover {background:#0f2642;}
+  .main-content {flex:1;padding:30px;}
+  .header {display:flex;justify-content:space-between;align-items:center;}
+  .header h1 {font-size:1.8rem;font-weight:600;}
+  .header h1 span {color:#3b82f6;}
+  table {width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);border-collapse:collapse;margin-top:20px;}
+  table th,table td {padding:15px;text-align:left;border-bottom:1px solid #e5e7eb;}
+  table th {background:#f9fafb;font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Admin</h2>
+    <ul>
+      <li onclick="location.href='admin-dashboard.html'">📊 Dashboard</li>
+      <li onclick="location.href='user.html'">👥 Users</li>
+      <li onclick="location.href='report.html'">📑 Reports</li>
+      <li>💬 Messages</li>
+      <li onclick="location.href='setting.html'">⚙ Settings</li>
+      <li style="margin-top:auto;color:#f87171;">🚪 Logout</li>
+    </ul>
+  </div>
+  <div class="main-content">
+    <div class="header">
+      <h1>User <span>Management</span></h1>
+    </div>
+    <button onclick="location.href='new-user.html'" style="background:#3b82f6;color:#fff;padding:10px 20px;border:none;border-radius:8px;margin-top:20px;cursor:pointer;">+ Add New User</button>
+    <table>
+      <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr>
+      <tr><td>Rohit Raut</td><td>rohit@example.com</td><td>Doctor</td><td>Active</td></tr>
+      <tr><td>Steve Smith</td><td>Steve@example.com</td><td>Patient</td><td>Active</td></tr>
+      <tr><td>Priya Sawant</td><td>priya@example.com</td><td>Nurse</td><td>Inactive</td></tr>
+    </table>
+  </div>
+</body>
+</html>

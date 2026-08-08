@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhanced Clinic Map - RBAC Medical</title>
+<style>
+body { font-family: Arial; background:#f0f8ff; margin:0; display:flex; flex-direction:column; align-items:center;}
+h2 { color:#0275d8; text-align:center; margin-top:20px;}
+#map { width:90%; max-width:900px; height:500px; margin:20px 0; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+@media(max-width:600px){#map{height:300px;}}
+#nearest { margin-bottom:15px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h2>Clinic Locations & Directions</h2>
+<div id="nearest">Nearest clinic: </div>
+<div id="map"></div>
+
+<script>
+// Clinics data
+const clinics = [
+  {name:"Clinic A", lat:19.0760, lng:72.8777, address:"Mumbai Main Street"},
+  {name:"Clinic B", lat:19.2183, lng:72.9781, address:"Thane West"},
+  {name:"Clinic C", lat:19.1193, lng:72.8506, address:"Chembur"}
+];
+
+let map, directionsService, directionsRenderer;
+
+function initMap(){
+    // Initialize map
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: {lat:19.0760,lng:72.8777}
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({map: map, suppressMarkers:true});
+
+    // Add clinic markers
+    clinics.forEach(clinic => {
+        const marker = new google.maps.Marker({
+            position: {lat: clinic.lat, lng: clinic.lng},
+            map: map,
+            title: clinic.name,
+            icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `<b>${clinic.name}</b><br>${clinic.address}`
+        });
+
+        marker.addListener("click", ()=> infoWindow.open(map, marker));
+    });
+
+    // Get user's location
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(position => {
+            const userPos = {lat: position.coords.latitude, lng: position.coords.longitude};
+            const userMarker = new google.maps.Marker({
+                position: userPos,
+                map: map,
+                title: "You are here",
+                icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+            });
+
+            map.setCenter(userPos);
+
+            // Find nearest clinic
+            let nearest = clinics[0];
+            let minDist = getDistance(userPos, nearest);
+            clinics.forEach(clinic=>{
+                const dist = getDistance(userPos, clinic);
+                if(dist < minDist){ nearest=clinic; minDist=dist; }
+            });
+
+            document.getElementById("nearest").innerText = `Nearest clinic: ${nearest.name} (${minDist.toFixed(2)} km)`;
+
+            // Show directions
+            directionsService.route({
+                origin: userPos,
+                destination: {lat: nearest.lat, lng: nearest.lng},
+                travelMode: 'DRIVING'
+            }, (response, status) => {
+                if(status==="OK") directionsRenderer.setDirections(response);
+            });
+        });
+    } else {
+        alert("Geolocation not supported by your browser.");
+    }
+}
+
+// Helper function to calculate distance (Haversine formula)
+function getDistance(p1,p2){
+    const R = 6371; // km
+    const dLat = (p2.lat-p1.lat)*Math.PI/180;
+    const dLng = (p2.lng-p1.lng)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(p1.lat*Math.PI/180)*Math.cos(p2.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+</script>
+
+<script src=""https://maps.googleapis.com/maps/api/js"key="AIzaSyBUxqIdBqzUgCnRu-O7-sQkrkRqUB5Ql1o"callback=initMap" async defer></script>
+</body>
+</html>

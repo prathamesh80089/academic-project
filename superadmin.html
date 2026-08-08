@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animated Role-Based Dashboard</title>
+<style>
+  /* --- Body and header --- */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    min-height: 100vh;
+    background: #f0f2f5;
+    overflow-x: hidden;
+  }
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: #0984e3;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    font-size: 1.3em;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  /* --- Sidebar --- */
+  .sidebar {
+    width: 220px;
+    background: #2d3436;
+    color: #dfe6e9;
+    padding-top: 60px;
+    flex-shrink: 0;
+    transition: width 0.3s;
+  }
+  .sidebar.collapsed { width: 60px; }
+  .sidebar h2 {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.2em;
+  }
+  .sidebar button {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #0984e3;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .sidebar button:hover {
+    background: #74b9ff;
+    transform: scale(1.05);
+  }
+
+  /* --- Dashboard content --- */
+  .main {
+    flex-grow: 1;
+    padding: 80px 30px 30px 30px;
+  }
+  .dashboard {
+    display: none;
+  }
+  .content {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .content.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- Tables --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+  }
+
+  /* --- Forms --- */
+  input, select, textarea {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    transition: box-shadow 0.3s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 5px #0984e3;
+  }
+  .form-section button {
+    background: #00b894;
+    margin-top: 10px;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .form-section button:hover {
+    background: #55efc4;
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+<header>Hospital Management System</header>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar">
+  <h2>Superadmin</h2>
+  <button onclick="showDashboard('superadminDashboard')">Dashboard</button>
+  <button onclick="showDashboard('adminDashboard')">Admins</button>
+  <button onclick="showDashboard('doctorDashboard')">Doctors</button>
+  <button onclick="showDashboard('nurseDashboard')">Nurses</button>
+  <button onclick="showDashboard('patientDashboard')">Patients</button>
+</div>
+
+<!-- Main content area -->
+<div class="main">
+  <!-- Superadmin Dashboard -->
+  <div id="superadminDashboard" class="dashboard">
+    <div class="content active">
+      <h2>Superadmin Dashboard</h2>
+      <p>Manage all admins, doctors, nurses, and patients.</p>
+    </div>
+    <div class="content">
+      <h3>Add Admin</h3>
+      <div class="form-section">
+        <input type="text" placeholder="Admin Name">
+        <input type="email" placeholder="Email">
+        <button>Add Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminDashboard" class="dashboard">
+    <div class="content active">
+      <h2>Admin Dashboard</h2>
+      <p>Manage doctors, patients, and appointments.</p>
+    </div>
+    <div class="content">
+      <h3>Add Doctor</h3>
+      <div class="form-section">
+        <input type="text" placeholder="Doctor Name">
+        <input type="email" placeholder="Email">
+        <button>Add Doctor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctor Dashboard -->
+  <div id="doctorDashboard" class="dashboard">
+    <div class="content active">
+      <h2>Doctor Dashboard</h2>
+      <p>View and update patient records.</p>
+    </div>
+    <div class="content">
+      <h3>Update Records</h3>
+      <div class="form-section">
+        <select>
+          <option>Select Patient</option>
+          <option>Alice</option>
+          <option>Bob</option>
+        </select>
+        <input type="text" placeholder="Diagnosis">
+        <textarea placeholder="Notes"></textarea>
+        <button>Update Record</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nurse Dashboard -->
+  <div id="nurseDashboard" class="dashboard">
+    <div class="content active">
+      <h2>Nurse Dashboard</h2>
+      <p>Update patient vitals and assist appointments.</p>
+    </div>
+    <div class="content">
+      <h3>Update Vitals</h3>
+      <div class="form-section">
+        <select>
+          <option>Select Patient</option>
+          <option>Alice</option>
+          <option>Bob</option>
+        </select>
+        <input type="text" placeholder="Blood Pressure">
+        <input type="text" placeholder="Heart Rate">
+        <button>Update Vitals</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Dashboard -->
+  <div id="patientDashboard" class="dashboard">
+    <div class="content active">
+      <h2>Patient Dashboard</h2>
+      <p>View your medical records, appointments, and lab results.</p>
+    </div>
+    <div class="content">
+      <h3>Schedule Appointment</h3>
+      <div class="form-section">
+        <input type="date">
+        <select>
+          <option>Select Doctor</option>
+          <option>Dr. Smith</option>
+          <option>Dr. Jane</option>
+        </select>
+        <button>Book Appointment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initially, only superadmin dashboard is visible
+  const dashboards = document.querySelectorAll('.dashboard');
+  dashboards.forEach(d => d.style.display = 'none');
+  document.getElementById('superadminDashboard').style.display = 'block';
+
+  // Function to switch dashboards
+  function showDashboard(dashboardId) {
+    dashboards.forEach(d => d.style.display = 'none');
+    const selected = document.getElementById(dashboardId);
+    selected.style.display = 'block';
+    // Animate content sections
+    const contents = selected.querySelectorAll('.content');
+    contents.forEach((c, i) => {
+      c.classList.remove('active');
+      setTimeout(() => c.classList.add('active'), i*100); // staggered fade-in
+    });
+  }
+</script>
+
+</body>
+</html>

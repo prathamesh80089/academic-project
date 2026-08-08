@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Medical Dashboard</title>
+<!-- QRCode.js -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<style>
+body { font-family: Arial; background: #f0f8ff; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center;}
+.container { background:#fff; padding:25px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.2); max-width:600px; width:100%; }
+h2,h3 { color:#0275d8; text-align:center; }
+input, button { width:100%; padding:12px; margin:6px 0; border-radius:8px; border:1px solid #ccc; font-size:14px; }
+button { background-color:#0275d8; color:white; font-weight:bold; cursor:pointer; transition:0.3s;}
+button:hover { background-color:#025aa5; }
+#messages { margin-top:15px; padding:10px; background:#e0f7fa; border-radius:10px; max-height:150px; overflow-y:auto;}
+.sms-message { padding:8px; margin-bottom:6px; border-left:4px solid #0275d8; background:#f1fcff; border-radius:5px; font-size:14px; animation:fadein 0.5s;}
+@keyframes fadein { from {opacity:0;} to {opacity:1;} }
+#map { width:100%; height:300px; margin-top:15px; border-radius:10px;}
+table { width:100%; border-collapse: collapse; margin-top:15px; }
+th, td { padding:8px; text-align:center; border-bottom:1px solid #ccc; }
+th { background-color:#0275d8; color:white; }
+#chatbot { margin-top:20px; }
+#chatbox { width:100%; height:150px; border:1px solid #ccc; padding:10px; overflow-y:auto; background:#f9f9f9; border-radius:8px;}
+#chatInput { width:80%; display:inline-block; }
+#sendBtn { width:18%; display:inline-block; }
+video { width:100%; height:250px; border-radius:10px; margin-top:15px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>RBAC Medical Dashboard</h2>
+
+<!-- Appointment Form -->
+<input type="text" id="patientName" placeholder="Patient Name">
+<input type="text" id="phoneNumber" placeholder="Phone Number (+91XXXXXXXXXX)">
+<input type="date" id="appointmentDate">
+<input type="time" id="appointmentTime">
+<button onclick="bookAppointment()">Book Appointment</button>
+
+<div id="messages"></div>
+
+<!-- QR Code -->
+<div id="qrcode"></div>
+
+<!-- Map -->
+<h3>Clinic Locations</h3>
+<div id="map"></div>
+
+<!-- Emergency Health Video -->
+<h3>Emergency Health Video</h3>
+<video controls>
+  <source src="emergency_health.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<!-- Upcoming Appointments -->
+<h3>Upcoming Appointments</h3>
+<table>
+<thead>
+<tr><th>Patient</th><th>Date</th><th>Time</th><th>Action</th></tr>
+</thead>
+<tbody id="appointmentList"></tbody>
+</table>
+
+<!-- Chatbot -->
+<h3>Emergency Health Chatbot</h3>
+<div id="chatbot">
+  <div id="chatbox"></div>
+  <input type="text" id="chatInput" placeholder="Ask your question...">
+  <button id="sendBtn">Send</button>
+</div>
+</div>
+
+<script>
+// Data
+let appointments = [];
+const clinics = [
+    {name:"Clinic A", lat:19.0760,lng:72.8777,address:"Mumbai Main Street"},
+    {name:"Clinic B", lat:19.2183,lng:72.9781,address:"Thane West"},
+    {name:"Clinic C", lat:19.1193,lng:72.8506,address:"Chembur"}
+];
+
+// SMS simulation
+function displaySMS(message){
+    const messagesDiv = document.getElementById('messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'sms-message';
+    msgDiv.innerText = message;
+    messagesDiv.appendChild(msgDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// QR Code
+function generateQRCode(data){
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = "";
+    QRCode.toCanvas(qrContainer, data, { width:150 }, function(err){
+        if(err) console.error(err);
+    });
+}
+
+// Appointment functions
+function updateAppointmentTable(){
+    const tbody = document.getElementById('appointmentList');
+    tbody.innerHTML = "";
+    appointments.forEach((appt,index)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${appt.patientName}</td><td>${appt.date}</td><td>${appt.time}</td>
+        <td><button onclick="reschedule(${index})">Reschedule</button>
+        <button onclick="cancel(${index})">Cancel</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function bookAppointment(){
+    const patientName = document.getElementById('patientName').value.trim();
+    const phoneNumber = document.getElementById('phoneNumber').value.trim();
+    const date = document.getElementById('appointmentDate').value;
+    const time = document.getElementById('appointmentTime').value;
+    if(!patientName || !phoneNumber || !date || !time){ alert("Fill all fields"); return; }
+    const appt={patientName,phoneNumber,date,time,apptID:"APPT"+Math.floor(Math.random()*100000)};
+    appointments.push(appt);
+    displaySMS(`SMS to ${phoneNumber}: Appointment booked on ${date} at ${time}`);
+    generateQRCode(JSON.stringify(appt));
+    updateAppointmentTable();
+}
+
+function reschedule(index){
+    const newDate = prompt("Enter new date (YYYY-MM-DD):",appointments[index].date);
+    const newTime = prompt("Enter new time (HH:MM):",appointments[index].time);
+    if(newDate && newTime){
+        appointments[index].date=newDate;
+        appointments[index].time=newTime;
+        displaySMS(`SMS to ${appointments[index].phoneNumber}: Appointment rescheduled to ${newDate} at ${newTime}`);
+        generateQRCode(JSON.stringify(appointments[index]));
+        updateAppointmentTable();
+    }
+}
+
+function cancel(index){
+    displaySMS(`SMS to ${appointments[index].phoneNumber}: Appointment cancelled`);
+    appointments.splice(index,1);
+    updateAppointmentTable();
+}
+
+// Google Map
+function initMap(){
+    const map = new google.maps.Map(document.getElementById("map"),{zoom:12,center:{lat:19.0760,lng:72.8777}});
+    clinics.forEach(clinic=>{
+        const marker=new google.maps.Marker({position:{lat:clinic.lat,lng:clinic.lng},map:map,title:clinic.name});
+        const infoWindow=new google.maps.InfoWindow({content:`<b>${clinic.name}</b><br>${clinic.address}`});
+        marker.addListener("click",()=>infoWindow.open(map,marker));
+    });
+}
+
+// Chatbot
+const chatBox=document.getElementById("chatbox");
+document.getElementById("sendBtn").addEventListener("click",()=>{
+    const input=document.getElementById("chatInput").value.trim();
+    if(!input) return;
+    const userMsg=document.createElement("div");
+    userMsg.innerText="You: "+input;
+    chatBox.appendChild(userMsg);
+
+    const botMsg=document.createElement("div");
+    botMsg.innerText="Bot: "+chatBotResponse(input);
+    chatBox.appendChild(botMsg);
+    chatBox.scrollTop=chatBox.scrollHeight;
+    document.getElementById("chatInput").value="";
+});
+
+function chatBotResponse(msg){
+    msg=msg.toLowerCase();
+    if(msg.includes("chest pain")) return "Call emergency services immediately! Keep the patient calm.";
+    if(msg.includes("bleeding")) return "Apply pressure to the wound and seek immediate medical attention.";
+    if(msg.includes("fever")) return "Monitor temperature and stay hydrated. Consult a doctor if high fever persists.";
+    if(msg.includes("appointment")) return "You can book an appointment using the form above.";
+    return "For emergencies, contact local healthcare immediately. Otherwise, you can ask about appointments or basic health tips.";
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzzFPCrJ9PI5dqUbD1gTaP7yZKamfZrSo&callback=initMap" async defer></script>
+</body>
+</html>

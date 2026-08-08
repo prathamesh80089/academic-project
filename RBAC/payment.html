@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detailed Analytics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #eef2f7;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #0d3b66;
+}
+
+section {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+}
+
+canvas {
+    background: #f9f9f9;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.kpi-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.kpi {
+    background: #d1f2eb;
+    padding: 20px;
+    border-radius: 10px;
+    width: 30%;
+    min-width: 200px;
+    text-align: center;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.kpi h3 { margin: 0 0 10px 0; }
+</style>
+</head>
+<body>
+
+<h1>Detailed Analytics Dashboard</h1>
+
+<!-- -------------------- Role Selector -------------------- -->
+<section>
+<label for="role">Select Role: </label>
+<select id="role" onchange="renderDashboard()">
+    <option value="doctor">Doctor</option>
+    <option value="patient">Patient</option>
+</select>
+</section>
+
+<!-- -------------------- KPIs -------------------- -->
+<section>
+<h2>Key Performance Indicators (KPIs)</h2>
+<div class="kpi-container" id="kpiContainer"></div>
+</section>
+
+<!-- -------------------- Charts -------------------- -->
+<section>
+<h2>Appointments Over Time</h2>
+<canvas id="appointmentsChart" width="600" height="300"></canvas>
+</section>
+
+<section>
+<h2>Common Diagnoses</h2>
+<canvas id="diagnosesChart" width="600" height="300"></canvas>
+</section>
+
+<section>
+<h2>Treatment Success Rate</h2>
+<canvas id="successChart" width="600" height="300"></canvas>
+</section>
+
+<script>
+// -------------------- Sample Data --------------------
+// Doctor sees aggregated data
+const doctorData = {
+    appointments: [5, 7, 6, 8, 7, 9],
+    months: ["Jan","Feb","Mar","Apr","May","Jun"],
+    diagnoses: { "Flu": 12, "Diabetes": 8, "Hypertension": 10 },
+    recoveryDays: [5,6,7,4,6,5],
+    successRate: [90, 85, 88, 92, 87, 95]
+};
+
+// Patient sees personal data
+const patientData = {
+    appointments: [1,1,1,1,1,1],
+    months: ["Jan","Feb","Mar","Apr","May","Jun"],
+    diagnoses: { "Flu": 1 },
+    recoveryDays: [5,6,5,6,5,5],
+    successRate: [100,100,100,100,100,100]
+};
+
+// -------------------- Render Dashboard --------------------
+function renderDashboard() {
+    const role = document.getElementById('role').value;
+    const data = role === 'doctor' ? doctorData : patientData;
+
+    // -------------------- KPIs --------------------
+    const avgRecovery = (data.recoveryDays.reduce((a,b)=>a+b,0)/data.recoveryDays.length).toFixed(1);
+    const totalAppointments = data.appointments.reduce((a,b)=>a+b,0);
+    const totalDiagnoses = Object.keys(data.diagnoses).length;
+
+    const kpiContainer = document.getElementById('kpiContainer');
+    kpiContainer.innerHTML = `
+        <div class="kpi"><h3>Avg Recovery Time</h3><p>${avgRecovery} days</p></div>
+        <div class="kpi"><h3>Total Appointments</h3><p>${totalAppointments}</p></div>
+        <div class="kpi"><h3>Diagnoses Count</h3><p>${totalDiagnoses}</p></div>
+    `;
+
+    // -------------------- Charts --------------------
+    // Appointments Line Chart
+    const ctxApp = document.getElementById('appointmentsChart').getContext('2d');
+    if(window.appointmentsChart) window.appointmentsChart.destroy();
+    window.appointmentsChart = new Chart(ctxApp, {
+        type: 'line',
+        data: { labels: data.months, datasets: [{ label:'Appointments', data:data.appointments, borderColor:'blue', fill:false, tension:0.3 }] },
+        options: { responsive:true, plugins:{ title:{ display:true, text:'Appointments Over Time' } } }
+    });
+
+    // Diagnoses Pie Chart
+    const ctxDiag = document.getElementById('diagnosesChart').getContext('2d');
+    if(window.diagnosesChart) window.diagnosesChart.destroy();
+    window.diagnosesChart = new Chart(ctxDiag, {
+        type: 'pie',
+        data: { labels:Object.keys(data.diagnoses), datasets:[{ data:Object.values(data.diagnoses), backgroundColor:['red','green','orange','purple'] }] },
+        options: { responsive:true, plugins:{ title:{ display:true, text:'Common Diagnoses' } } }
+    });
+
+    // Treatment Success Stacked Bar Chart
+    const ctxSucc = document.getElementById('successChart').getContext('2d');
+    if(window.successChart) window.successChart.destroy();
+    window.successChart = new Chart(ctxSucc, {
+        type: 'bar',
+        data: {
+            labels: data.months,
+            datasets: [
+                { label:'Success Rate (%)', data:data.successRate, backgroundColor:'green' }
+            ]
+        },
+        options: {
+            responsive:true,
+            plugins:{ title:{ display:true, text:'Treatment Success Rate' } },
+            scales:{ y:{ beginAtZero:true, max:100 } }
+        }
+    });
+}
+
+// Initial render
+renderDashboard();
+</script>
+
+</body>
+</html>

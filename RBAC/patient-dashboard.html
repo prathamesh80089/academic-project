@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Dashboard - RBAC Medical</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- ✅ Role check at the very top -->
+<script>
+  // Check role from localStorage
+  const role = localStorage.getItem('role');
+  if (role !== 'Patient') {
+    // Not a patient, redirect to login page
+    window.location.href = 'login.html';
+  }
+</script>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+body {
+  background: linear-gradient(-45deg,#004aad,#2e7d32,#56c7f4,#f9f9f9);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  color:#333; line-height:1.6; display:flex; min-height:100vh; position:relative; overflow-x:hidden;
+}
+@keyframes gradientBG {
+  0% { background-position:0% 50%; }
+  50% { background-position:100% 50%; }
+  100% { background-position:0% 50%; }
+}
+
+/* Particle background */
+#background-animation { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1; pointer-events:none; overflow:hidden; }
+.particle { position:absolute; width:8px; height:8px; background:rgba(255,255,255,0.5); border-radius:50%; animation: floatUp 10s linear infinite; }
+@keyframes floatUp { from { transform: translateY(100vh); opacity:1; } to { transform: translateY(-10vh); opacity:0; } }
+
+/* Sidebar */
+.sidebar { width:250px; background:#183153; color:#fff; padding:20px 0; display:flex; flex-direction:column; }
+.sidebar h2 { font-size:1.5rem; text-align:center; margin-bottom:2rem; }
+.sidebar ul { list-style:none; padding:0; }
+.sidebar ul li { padding:15px 20px; cursor:pointer; transition: background 0.3s ease; }
+.sidebar ul li:hover { background:#0f2642; }
+.sidebar ul li.logout { margin-top:auto; color:#f87171; }
+
+/* Main content */
+.main-content { flex:1; padding:30px; }
+.header { display:flex; justify-content:space-between; align-items:center; }
+.header h1 { font-size:1.8rem; font-weight:600; }
+.header h1 span { color:#3b82f6; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-top:20px; }
+.card { background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); animation:fadeInUp 0.6s ease; }
+.card h3 { font-size:1rem; font-weight:600; margin-bottom:10px; }
+.card p { font-size:0.9rem; color:#555; }
+.chart-container { width:100%; height:200px; display:block; }
+.section { display:none; }
+
+.feedback-form label { display:block; margin-top:0.5rem; }
+.feedback-form textarea, .feedback-form input { width:100%; padding:0.5rem; margin-top:0.25rem; }
+.stars span { font-size:1.5rem; cursor:pointer; color:#ccc; }
+.stars span.selected { color:gold; }
+
+.tips-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; }
+.tip-card { background:#f4f8fc; padding:1rem; border-radius:6px; }
+
+.video-container button { padding:0.5rem 1rem; background:#2e7d32; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+.video-container button:hover { background:#256028; }
+
+.emergency button { background:red; color:#fff; font-size:1.2rem; padding:0.75rem 1.5rem; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+.emergency button:hover { background:darkred; }
+
+@keyframes fadeInUp { 0%{opacity:0; transform:translateY(10px);} 100%{opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<div id="background-animation"></div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <h2>Patient</h2>
+  <ul>
+    <li data-section="dashboard">🏠 Dashboard</li>
+    <li data-section="appointments">📅 My Appointments</li>
+    <li data-section="prescriptions">💊 Prescriptions</li>
+    <li data-section="records">📋 Health Records</li>
+    <li data-section="progressReport">📈 Progress Report</li>
+    <li data-section="feedback">⭐ Feedback</li>
+    <li data-section="tips">📝 Health Tips</li>
+    <li data-section="videoCall">📹 Virtual Consultation</li>
+    <li data-section="emergency">🚨 Emergency Alert</li>
+    <li class="logout">🚪 Logout</li>
+  </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="header">
+    <h1>Welcome, <span id="usernameDisplay"></span></h1>
+    <div class="profile">👤 Patient</div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="section">
+    <div class="cards">
+      <div class="card"><h3>Upcoming Appointment</h3><p>Dr. Sawant<br>20 Sept 2025 at 3:00 PM</p></div>
+      <div class="card"><h3>Recent Prescription</h3><p>Paracetamol 500mg - 2 times a day</p></div>
+      <div class="card"><h3>Health Record Summary</h3><p>BP: 120/80 mmHg<br>Sugar: Normal</p></div>
+    </div>
+  </div>
+
+  <!-- Appointments -->
+  <div id="appointments" class="section">
+    <div class="cards">
+      <div class="card"><h3>Next Appointment</h3><p>Dr. Sawant<br>20 Sept 2025 at 3:00 PM</p></div>
+      <div class="card"><h3>Upcoming Appointments</h3><p>Dr. Patil<br>25 Sept 2025 at 11:00 AM</p></div>
+    </div>
+  </div>
+
+  <!-- Prescriptions -->
+  <div id="prescriptions" class="section">
+    <div class="cards">
+      <div class="card"><h3>Prescription 1</h3><p>Paracetamol 500mg - 2 times/day</p></div>
+      <div class="card"><h3>Prescription 2</h3><p>Vitamin D 1000 IU - 1 daily</p></div>
+    </div>
+  </div>
+
+  <!-- Records -->
+  <div id="records" class="section">
+    <div class="cards">
+      <div class="card"><h3>BP Records</h3><p>120/80 mmHg</p></div>
+      <div class="card"><h3>Blood Sugar</h3><p>Normal</p></div>
+    </div>
+  </div>
+
+  <!-- Progress Report -->
+  <div id="progressReport" class="section">
+    <div class="cards">
+      <div class="card"><h3>Blood Pressure Trend</h3><canvas id="bpChart" class="chart-container"></canvas></div>
+      <div class="card"><h3>Blood Sugar Trend</h3><canvas id="sugarChart" class="chart-container"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <div id="feedback" class="section">
+    <h2>Patient Feedback</h2>
+    <form class="feedback-form" id="feedbackForm">
+      <label>Doctor/Service Name:
+        <input type="text" id="serviceName" placeholder="Enter Doctor or Service">
+      </label>
+      <label>Your Rating:</label>
+      <div class="stars" id="starRating">
+        <span data-value="1">★</span>
+        <span data-value="2">★</span>
+        <span data-value="3">★</span>
+        <span data-value="4">★</span>
+        <span data-value="5">★</span>
+      </div>
+      <label>Your Feedback:</label>
+      <textarea id="feedbackText" rows="3" placeholder="Write your feedback..."></textarea>
+      <button type="submit" style="margin-top:1rem;">Submit</button>
+    </form>
+    <p id="feedbackResult" style="margin-top:1rem; color:green;"></p>
+    <ul id="feedbackList" style="margin-top:1rem; list-style:none;"></ul>
+  </div>
+
+  <!-- Health Tips -->
+  <div id="tips" class="section">
+    <div class="tips-list">
+      <div class="tip-card"><h3>Stay Hydrated</h3><p>Drink 8 glasses of water daily.</p></div>
+      <div class="tip-card"><h3>Exercise</h3><p>30 mins daily improves health.</p></div>
+      <div class="tip-card"><h3>Regular Checkups</h3><p>Visit your doctor regularly.</p></div>
+    </div>
+  </div>
+
+  <!-- Video Call -->
+  <div id="videoCall" class="section video-container">
+    <h2>Virtual Consultation</h2>
+    <p>Click below to start a secure video call with your doctor.</p>
+    <button onclick="startVideoCall()">Start Video Call</button>
+    <p id="videoStatus" style="margin-top:1rem;"></p>
+  </div>
+
+  <!-- Emergency -->
+  <div id="emergency" class="section emergency">
+    <h2>Emergency Alert</h2>
+    <p>Click the button below to immediately alert hospital staff.</p>
+    <button onclick="sendEmergency()">🚨 Emergency Alert</button>
+    <p id="emergencyStatus" style="margin-top:1rem; font-weight:bold;"></p>
+  </div>
+
+</div>
+
+<script>
+// Set username dynamically
+document.addEventListener('DOMContentLoaded', () => {
+  const username = localStorage.getItem('username') || 'Patient';
+  document.getElementById('usernameDisplay').textContent = username;
+});
+
+// Sidebar navigation
+document.querySelectorAll('.sidebar ul li[data-section]').forEach(item => {
+  item.addEventListener('click', () => {
+    const sectionId = item.getAttribute('data-section');
+    document.querySelectorAll('.section').forEach(sec => sec.style.display='none');
+    document.getElementById(sectionId).style.display='block';
+  });
+});
+
+// Logout
+document.querySelector('.logout').addEventListener('click', () => {
+  // Clear localStorage and go to login
+  localStorage.clear();
+  window.location.href='login.html';
+});
+
+// Show dashboard by default
+document.getElementById('dashboard').style.display='block';
+
+// Floating particles
+const container = document.getElementById('background-animation');
+for(let i=0;i<40;i++){
+  const p=document.createElement('div'); p.classList.add('particle');
+  p.style.left=Math.random()*100+'vw';
+  p.style.top=Math.random()*100+'vh';
+  p.style.animationDuration=5+Math.random()*10+'s';
+  p.style.opacity=Math.random();
+  container.appendChild(p);
+}
+
+// Chart.js Progress Report
+const bpCtx = document.getElementById('bpChart').getContext('2d');
+new Chart(bpCtx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'BP (mmHg)',data:[120,122,118,121,119,120],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false}}}});
+
+const sugarCtx = document.getElementById('sugarChart').getContext('2d');
+new Chart(sugarCtx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'Blood Sugar (mg/dL)',data:[90,95,100,92,98,94],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false}}}});
+
+// Feedback stars
+const stars = document.querySelectorAll('#starRating span');
+let selectedRating = 0;
+stars.forEach(star => {
+  star.addEventListener('click',()=>{
+    selectedRating=star.dataset.value;
+    stars.forEach(s=>s.classList.remove('selected'));
+    for(let i=0;i<selectedRating;i++) stars[i].classList.add('selected');
+  });
+});
+
+// Feedback submit
+document.getElementById('feedbackForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const service = document.getElementById('serviceName').value.trim();
+  const feedback = document.getElementById('feedbackText').value.trim();
+  if(!service || !selectedRating || !feedback){ alert('Complete all fields and select rating'); return;}
+  const li = document.createElement('li');
+  li.innerHTML = `⭐ ${selectedRating} - <strong>${service}</strong>: ${feedback}`;
+  document.getElementById('feedbackList').prepend(li);
+  document.getElementById('feedbackResult').textContent=`Thank you! Your feedback submitted.`;
+  document.getElementById('serviceName').value=''; document.getElementById('feedbackText').value=''; selectedRating=0;
+  stars.forEach(s=>s.classList.remove('selected'));
+});
+
+// Video call
+function startVideoCall(){
+  document.getElementById('videoStatus').textContent="Opening video call window...";
+  window.open("https://meet.jit.si/RBACMedicalDemo","_blank");
+}
+
+// Emergency
+function sendEmergency(){
+  document.getElementById('emergencyStatus').textContent="🚨 Emergency alert sent to hospital staff!";
+}
+</script>
+
+</body>
+</html>

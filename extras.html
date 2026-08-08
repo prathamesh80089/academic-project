@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Feedback Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+  body { background: #f9f9f9; color: #333; line-height: 1.6; }
+
+  header { background:#004aad; color:#fff; padding:1rem; text-align:center; font-size:1.5rem; }
+
+  section { background:#fff; padding:2rem; margin:1rem auto; max-width:900px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+  section h2 { margin-bottom:1rem; color:#004aad; }
+
+  /* Patient Feedback */
+  .feedback-form label { display:block; margin-top:0.5rem; }
+  .feedback-form textarea { width:100%; padding:0.5rem; margin-top:0.25rem; }
+  .stars span { font-size:1.5rem; cursor:pointer; color:#ccc; }
+  .stars span.selected { color:gold; }
+
+  /* Health Tips */
+  .tips-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; }
+  .tip-card { background:#f4f8fc; padding:1rem; border-radius:6px; }
+
+  /* Video Call */
+  .video-container { text-align:center; }
+  .video-container button { padding:0.5rem 1rem; background:#2e7d32; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+  .video-container button:hover { background:#256028; }
+
+  /* Emergency Button */
+  .emergency { text-align:center; margin-top:2rem; }
+  .emergency button { background:red; color:#fff; font-size:1.2rem; padding:0.75rem 1.5rem; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+  .emergency button:hover { background:darkred; }
+
+</style>
+</head>
+<body>
+
+<header>RBAC Medical – Extras</header>
+
+<!-- Patient Feedback / Ratings -->
+<section>
+  <h2>Patient Feedback / Ratings</h2>
+  <form class="feedback-form">
+    <label>Doctor/Service Name:
+      <input type="text" id="serviceName" placeholder="Enter Doctor or Service">
+    </label>
+    <label>Your Rating:</label>
+    <div class="stars" id="starRating">
+      <span data-value="1">★</span>
+      <span data-value="2">★</span>
+      <span data-value="3">★</span>
+      <span data-value="4">★</span>
+      <span data-value="5">★</span>
+    </div>
+    <label>Your Feedback:</label>
+    <textarea id="feedbackText" rows="3" placeholder="Write your feedback..."></textarea>
+    <button type="button" onclick="submitFeedback()" style="margin-top:1rem; padding:0.5rem 1rem; background:#004aad; color:#fff; border:none; border-radius:4px; cursor:pointer;">Submit</button>
+  </form>
+  <p id="feedbackResult" style="margin-top:1rem; color:green;"></p>
+</section>
+
+<!-- Health Tips Section / Blog -->
+<section>
+  <h2>Health Tips</h2>
+  <div class="tips-list">
+    <div class="tip-card">
+      <h3>Stay Hydrated</h3>
+      <p>Drink at least 8 glasses of water daily for optimal health.</p>
+    </div>
+    <div class="tip-card">
+      <h3>Exercise Regularly</h3>
+      <p>30 minutes of daily exercise improves heart and mental health.</p>
+    </div>
+    <div class="tip-card">
+      <h3>Regular Checkups</h3>
+      <p>Visit your doctor regularly for preventive screenings.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Virtual Consultation (Video Call) -->
+<section class="video-container">
+  <h2>Virtual Consultation</h2>
+  <p>Click below to start a secure video call with your doctor.</p>
+  <button onclick="startVideoCall()">Start Video Call</button>
+  <p id="videoStatus" style="margin-top:1rem;"></p>
+</section>
+
+<!-- Emergency Button -->
+<section class="emergency">
+  <h2>Emergency Alert</h2>
+  <p>Click the button below to immediately alert hospital staff.</p>
+  <button onclick="sendEmergency()">🚨 Emergency Alert</button>
+  <p id="emergencyStatus" style="margin-top:1rem; font-weight:bold;"></p>
+</section>
+
+<script>
+  // ⭐ Ratings selection
+  const stars = document.querySelectorAll('#starRating span');
+  let selectedRating = 0;
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = star.dataset.value;
+      stars.forEach(s => s.classList.remove('selected'));
+      for(let i=0;i<selectedRating;i++){ stars[i].classList.add('selected'); }
+    });
+  });
+
+  // Feedback Submit
+  function submitFeedback() {
+    const service = document.getElementById('serviceName').value.trim();
+    const feedback = document.getElementById('feedbackText').value.trim();
+    if (!service || !selectedRating || !feedback) {
+      alert('Please complete all fields and select a rating.');
+      return;
+    }
+    document.getElementById('feedbackResult').textContent =
+      `Thank you! Your feedback for "${service}" with ${selectedRating} stars has been submitted.`;
+    // Here you would send to backend via fetch()
+  }
+
+  // Video Call (basic demo)
+  function startVideoCall() {
+    // In a real app, integrate WebRTC or Zoom API.
+    // For now, just simulate opening a call page:
+    document.getElementById('videoStatus').textContent =
+      "Opening video call window...";
+    window.open("https://meet.jit.si/RBACMedicalDemo", "_blank");
+  }
+
+  // Emergency Button
+  function sendEmergency() {
+    document.getElementById('emergencyStatus').textContent =
+      "🚨 Emergency alert sent to hospital staff!";
+    // In a real app, send an AJAX request to notify backend
+    // fetch('/api/emergency', {method:'POST'}) ...
+  }
+</script>
+
+</body>
+</html>

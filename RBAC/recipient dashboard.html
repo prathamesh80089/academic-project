@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animated Receptionist Dashboard</title>
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif;}
+body {display:flex; background:#f3f4f6; color:#333; overflow-x:hidden;}
+
+/* Sidebar */
+.sidebar {
+  background: #1e40af;
+  color: #fff;
+  width: 250px;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: -250px;
+  padding: 1rem;
+  transition: left 0.5s ease;
+}
+.sidebar.open {left:0;}
+.sidebar h2 {margin-bottom: 1rem; animation: fadeIn 1s;}
+.sidebar ul {list-style:none;}
+.sidebar ul li {
+  padding: 12px;
+  margin-bottom:5px;
+  cursor:pointer;
+  border-radius:6px;
+  opacity:0;
+  transform: translateX(-20px);
+  animation: slideIn 0.5s forwards;
+}
+.sidebar ul li:nth-child(1){animation-delay:0.2s;}
+.sidebar ul li:nth-child(2){animation-delay:0.4s;}
+.sidebar ul li:nth-child(3){animation-delay:0.6s;}
+.sidebar ul li:nth-child(4){animation-delay:0.8s;}
+.sidebar ul li:nth-child(5){animation-delay:1s;}
+.sidebar ul li:hover {background: rgba(255,255,255,0.2);}
+
+/* Main Content */
+.main {
+  flex:1;
+  margin-left:0;
+  padding:2rem;
+  transition: margin-left 0.5s ease;
+}
+.main.shifted {margin-left:250px;}
+
+/* Toggle Button */
+#toggleSidebar {
+  background: #1e40af;
+  color: #fff;
+  border:none;
+  padding:10px 15px;
+  cursor:pointer;
+  border-radius:5px;
+  margin-bottom:1rem;
+}
+
+/* Sections */
+.section {
+  display:none;
+  opacity:0;
+  animation: fadeInUp 0.5s forwards;
+  animation-delay:0.2s;
+}
+.section.active {display:block; opacity:1;}
+
+/* Cards */
+.cards {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap:1rem;
+  margin-bottom:2rem;
+}
+.card {
+  background:#fff;
+  padding:1rem;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  opacity:0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s forwards;
+}
+.card:nth-child(1){animation-delay:0.2s;}
+.card:nth-child(2){animation-delay:0.4s;}
+.card:nth-child(3){animation-delay:0.6s;}
+
+/* Table */
+table {width:100%; border-collapse:collapse; margin-bottom:1rem;}
+th, td {border-bottom:1px solid #ddd; padding:10px; text-align:left;}
+tr:hover {background:#f1f5f9; transform:scale(1.01); transition:0.2s;}
+th {cursor:pointer; background:#e5e7eb;}
+th:hover {background:#d1d5db;}
+
+/* Chart Container */
+.chart-container {
+  background:#fff;
+  padding:1rem;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  opacity:0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s forwards;
+  animation-delay:0.2s;
+}
+
+/* Animations */
+@keyframes fadeIn {from{opacity:0;} to{opacity:1;}}
+@keyframes slideIn {to{opacity:1; transform:translateX(0);}}
+@keyframes fadeInUp {to{opacity:1; transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <h2>Reception Panel</h2>
+  <ul>
+    <li data-target="appointments">Appointments</li>
+    <li data-target="patients">Patients</li>
+    <li data-target="billing">Billing</li>
+    <li data-target="reports">Reports</li>
+    <li data-target="settings">Settings</li>
+  </ul>
+</div>
+
+<!-- Main -->
+<div class="main" id="main">
+  <button id="toggleSidebar">☰ Toggle Sidebar</button>
+
+  <!-- Appointments Section -->
+  <div id="appointments" class="section active">
+    <h2>Today’s Appointments</h2>
+    <table>
+      <thead>
+        <tr><th>Patient</th><th>Time</th><th>Doctor</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Alice Cooper</td><td>09:00 AM</td><td>Dr. Smith</td><td>Doctor</td></tr>
+        <tr><td>David Wilson</td><td>09:30 AM</td><td>Dr. Brown</td><td>Doctor</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Patients Section -->
+  <div id="patients" class="section">
+    <h2>Registered Patients</h2>
+    <ul>
+      <li>John Doe</li>
+      <li>Mary Smith</li>
+      <li>Robert Brown</li>
+    </ul>
+  </div>
+
+  <!-- Billing Section -->
+  <div id="billing" class="section">
+    <h2>Billing Info</h2>
+    <p>Total Revenue Today: $1,250</p>
+  </div>
+
+  <!-- Reports Section -->
+  <div id="reports" class="section">
+    <h2>Reports</h2>
+    <p>Monthly reports are available here.</p>
+  </div>
+
+  <!-- Settings Section -->
+  <div id="settings" class="section">
+    <h2>Settings</h2>
+    <p>Update your preferences and roles here.</p>
+  </div>
+
+</div>
+
+<script>
+// Sidebar toggle
+document.getElementById('toggleSidebar').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('main').classList.toggle('shifted');
+});
+
+// Sidebar menu click to show content
+document.querySelectorAll('.sidebar ul li').forEach(li=>{
+  li.addEventListener('click', ()=>{
+    const target = li.getAttribute('data-target');
+    document.querySelectorAll('.section').forEach(sec=>{
+      sec.classList.remove('active');
+    });
+    document.getElementById(target).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

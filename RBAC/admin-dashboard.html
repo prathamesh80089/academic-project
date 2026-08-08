@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Medical RBAC</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif;}
+body {display:flex; background:#f1f5f9; color:#333; transition:0.3s;}
+.sidebar {width:250px; background:#183153; color:#fff; display:flex; flex-direction:column; min-height:100vh; padding:20px 0;}
+.sidebar h2 {text-align:center; font-size:1.5rem; margin-bottom:2rem; font-weight:600;}
+.sidebar ul {list-style:none;}
+.sidebar ul li {padding:15px 20px; cursor:pointer; display:flex; align-items:center;}
+.sidebar ul li:hover {background:#0f2642;}
+.sidebar ul li a {color:inherit; text-decoration:none; display:flex; width:100%;}
+.sidebar .logout {margin-top:auto; color:#f87171;}
+.main-content {flex:1; padding:30px;}
+.header {display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;}
+.header h1 {font-size:1.8rem; font-weight:600;}
+.header h1 span {color:#3b82f6;}
+.header-right {display:flex; align-items:center; gap:15px;}
+.search-bar {padding:5px 10px; border-radius:6px; border:1px solid #ccc;}
+.cards {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-top:20px;}
+.card {background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;}
+.card:hover {transform: translateY(-8px); box-shadow:0 8px 20px rgba(0,0,0,0.2); cursor:pointer;}
+.card h3 {font-size:1rem; font-weight:600; margin-bottom:10px;}
+.card p {font-size:1.2rem; font-weight:600; color:#3b82f6;}
+.chart-container {width:100%; height:200px;}
+.activity-feed {margin-top:30px; background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+.activity-feed ul {list-style:none;}
+.activity-feed ul li {padding:10px 0; border-bottom:1px solid #eee; font-size:0.95rem;}
+.activity-feed ul li:last-child{border-bottom:none;}
+.quick-actions {display:flex; gap:15px; margin-top:20px;}
+.quick-actions button {padding:10px 20px; border:none; border-radius:8px; background:#3b82f6; color:#fff; cursor:pointer; transition: transform 0.2s ease, background 0.3s ease;}
+.quick-actions button:hover {background:#2563eb; transform: scale(1.05);}
+.modal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:100;}
+.modal-content {background:#fff; padding:20px; border-radius:8px; width:90%; max-width:400px;}
+.modal-content label {margin-top:10px; display:block; font-weight:600;}
+.modal-content input, .modal-content textarea {width:100%; padding:8px; margin-top:5px; border-radius:5px; border:1px solid #ccc;}
+.modal-content button {margin-top:15px; width:100%; padding:10px; background:#2e7d32; color:#fff; border:none; border-radius:6px; cursor:pointer; transition:0.3s;}
+.modal-content button:hover {background:#1b4f1b; transform:scale(1.05);}
+.dark-mode {background:#1f2937; color:#fff;}
+.dark-mode .sidebar {background:#111827;}
+.dark-mode .card, .dark-mode .activity-feed, .dark-mode .modal-content {background:#374151; color:#fff;}
+.dark-mode .card p {color:#60a5fa;}
+.dark-mode .search-bar {background:#374151; color:#fff; border:1px solid #555;}
+.action-btn {padding:3px 6px; margin-left:5px; font-size:0.85rem; border:none; border-radius:4px; cursor:pointer;}
+.edit-btn {background:#facc15; color:#000;}
+.delete-btn {background:#f87171; color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>Admin</h2>
+  <ul>
+    <li data-section="dashboardSection">📊 <span>Dashboard</span></li>
+    <li data-section="reportsSection">📑 <span>Reports</span></li>
+    <li data-section="messagesSection">💬 <span>Messages</span></li>
+    <li data-section="settingsSection">⚙ <span>Settings</span></li>
+    <li class="logout">🚪 <span>Logout</span></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <!-- Dashboard Section -->
+  <div id="dashboardSection">
+    <h1>Welcome, <span>Admin</span></h1>
+    <div class="quick-actions">
+      <button id="addUserBtn">➕ Add Doctor</button>
+      <button id="generateReportBtn">📄 Generate Report</button>
+      <button id="sendMessageBtn">✉️ Send Message</button>
+      <button id="goPerformanceBtn">📈 Performance Dashboard</button> <!-- New Redirect Button -->
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Doctors List</h3>
+        <ul id="doctorsList" style="list-style:none; padding-left:0;"></ul>
+      </div>
+      <div class="card"><h3>Total Reports</h3><p>50</p></div>
+      <div class="card"><h3>New Messages</h3><p>23</p></div>
+      <div class="card"><h3>Active Users</h3><p>20</p></div>
+      <div class="card"><h3>User Registrations</h3><canvas id="userRegistrationsChart" class="chart-container"></canvas></div>
+      <div class="card"><h3>Report Submissions</h3><canvas id="reportSubmissionsChart" class="chart-container"></canvas></div>
+      <div class="card"><h3>User Roles</h3><canvas id="userRolesChart" class="chart-container"></canvas></div>
+    </div>
+
+    <div class="activity-feed">
+      <h3>Recent Activity</h3>
+      <ul id="activityList"></ul>
+    </div>
+  </div>
+
+  <!-- Reports Section -->
+  <div id="reportsSection" style="display:none;">
+    <h1>Reports</h1>
+    <table border="1" width="100%" style="border-collapse:collapse; margin-top:10px;">
+      <thead>
+        <tr>
+          <th>Report ID</th>
+          <th>Title</th>
+          <th>Created By</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="reportsTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Messages Section -->
+  <div id="messagesSection" style="display:none;">
+    <h1>Messages</h1>
+    <ul id="messagesList" style="list-style:none; padding-left:0; margin-top:10px;"></ul>
+  </div>
+
+  <!-- Settings Section -->
+  <div id="settingsSection" style="display:none;">
+    <h1>Settings</h1>
+    <label>Change Admin Name:</label>
+    <input type="text" id="adminNameInput" placeholder="Enter new name">
+    <button onclick="updateAdminName()">Update</button>
+  </div>
+</div>
+
+<!-- Add/Edit Doctor Modal -->
+<div class="modal" id="doctorModal">
+  <div class="modal-content">
+    <h3 id="modalTitle">Add Doctor</h3>
+    <label for="doctorName">Name</label>
+    <input type="text" id="doctorName" placeholder="Enter Doctor's Name">
+    <label for="doctorEmail">Email</label>
+    <input type="email" id="doctorEmail" placeholder="Enter Doctor's Email">
+    <label for="doctorPassword">Password</label>
+    <input type="password" id="doctorPassword" placeholder="Enter Password">
+    <button id="saveDoctorBtn">Save</button>
+  </div>
+</div>
+
+<!-- Send Message Modal -->
+<div class="modal" id="sendMessageModal">
+  <div class="modal-content">
+    <h3>Send Message</h3>
+    <label for="recipient">Recipient</label>
+    <input type="text" id="recipient" placeholder="Enter recipient name or role">
+    <label for="subject">Subject</label>
+    <input type="text" id="subject" placeholder="Enter subject">
+    <label for="messageBody">Message</label>
+    <textarea id="messageBody" rows="4" placeholder="Type your message"></textarea>
+    <button id="submitMessageBtn">Send Message</button>
+  </div>
+</div>
+
+<script>
+// Sidebar Navigation
+const sections = ['dashboardSection','reportsSection','messagesSection','settingsSection'];
+document.querySelectorAll('.sidebar ul li[data-section]').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    const target=item.getAttribute('data-section');
+    sections.forEach(sec=>document.getElementById(sec).style.display=(sec===target)?'block':'none');
+  });
+});
+
+// Logout
+document.querySelector('.logout').addEventListener('click', ()=>{
+  alert("Logged out successfully!");
+  window.location.href='performance.html';
+});
+
+// Activity Feed Helper
+const activityList=document.getElementById('activityList');
+function addActivity(msg){ const li=document.createElement('li'); li.innerHTML=msg; activityList.prepend(li); }
+
+// Doctor Management
+function renderDoctorsList(){
+  const doctorsList=document.getElementById('doctorsList');
+  doctorsList.innerHTML='';
+  let doctors=JSON.parse(localStorage.getItem('doctors')||"[]");
+  if(doctors.length===0){doctorsList.innerHTML='<li>No doctors added yet.</li>'; return;}
+  doctors.forEach((doc,index)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`👨‍⚕️ <strong>${doc.name}</strong> (${doc.email})
+      <button class="action-btn edit-btn" onclick="openDoctorModal(${index})">Edit</button>
+      <button class="action-btn delete-btn" onclick="deleteDoctor(${index})">Delete</button>`;
+    doctorsList.appendChild(li);
+  });
+}
+renderDoctorsList();
+
+// Add/Edit Doctor Modal
+const doctorModal=document.getElementById('doctorModal');
+let editIndex=null;
+function openDoctorModal(index=null){
+  doctorModal.style.display='flex';
+  if(index!==null){
+    editIndex=index;
+    const doctors=JSON.parse(localStorage.getItem('doctors')||"[]");
+    document.getElementById('modalTitle').innerText='Edit Doctor';
+    document.getElementById('doctorName').value=doctors[index].name;
+    document.getElementById('doctorEmail').value=doctors[index].email;
+    document.getElementById('doctorPassword').value=doctors[index].password;
+  } else {
+    editIndex=null;
+    document.getElementById('modalTitle').innerText='Add Doctor';
+    document.getElementById('doctorName').value='';
+    document.getElementById('doctorEmail').value='';
+    document.getElementById('doctorPassword').value='';
+  }
+}
+document.getElementById('addUserBtn').addEventListener('click',()=>openDoctorModal());
+document.getElementById('saveDoctorBtn').addEventListener('click',()=>{
+  const name=document.getElementById('doctorName').value.trim();
+  const email=document.getElementById('doctorEmail').value.trim();
+  const password=document.getElementById('doctorPassword').value.trim();
+  if(!name||!email||!password){alert("All fields required!");return;}
+  let doctors=JSON.parse(localStorage.getItem('doctors')||"[]");
+  if(editIndex!==null){doctors[editIndex]={name,email,password,role:'doctor'}; addActivity(`✏️ Doctor <strong>${name}</strong> edited`);}
+  else {if(doctors.find(d=>d.email===email)){alert("Email exists!");return;} doctors.push({name,email,password,role:'doctor'}); addActivity(`👨‍⚕️ Doctor <strong>${name}</strong> added`);}
+  localStorage.setItem('doctors',JSON.stringify(doctors)); doctorModal.style.display='none'; renderDoctorsList();
+});
+function deleteDoctor(index){
+  if(!confirm("Delete this doctor?"))return;
+  let doctors=JSON.parse(localStorage.getItem('doctors')||"[]");
+  const name=doctors[index].name; doctors.splice(index,1);
+  localStorage.setItem('doctors',JSON.stringify(doctors)); addActivity(`❌ Doctor <strong>${name}</strong> deleted`); renderDoctorsList();
+}
+
+// Close Modals
+window.onclick=function(e){ if(e.target==doctorModal)doctorModal.style.display='none'; if(e.target==sendMessageModal)sendMessageModal.style.display='none'; };
+
+// Messages
+const sendMessageModal=document.getElementById('sendMessageModal');
+document.getElementById('sendMessageBtn').addEventListener('click',()=>sendMessageModal.style.display='flex');
+document.getElementById('submitMessageBtn').addEventListener('click',()=>{
+  const recipient=document.getElementById('recipient').value.trim();
+  const subject=document.getElementById('subject').value.trim();
+  const message=document.getElementById('messageBody').value.trim();
+  if(!recipient||!subject||!message){alert("All fields required!");return;}
+  addActivity(`✉️ Message sent to <strong>${recipient}</strong>: <em>${subject}</em>`);
+  let messages=JSON.parse(localStorage.getItem('messages')||"[]");
+  messages.push({recipient,subject,message,date:new Date().toLocaleString()});
+  localStorage.setItem('messages',JSON.stringify(messages));
+  sendMessageModal.style.display='none'; document.getElementById('recipient').value=''; document.getElementById('subject').value=''; document.getElementById('messageBody').value='';
+  renderMessages(); alert("Message sent!");
+});
+
+// Render Messages
+function renderMessages(){
+  let messages=JSON.parse(localStorage.getItem('messages')||"[]");
+  const ul=document.getElementById('messagesList');
+  ul.innerHTML=''; if(messages.length===0){ul.innerHTML='<li>No messages yet.</li>'; return;}
+  messages.forEach(m=>{
+    const li=document.createElement('li');
+    li.style.borderBottom='1px solid #ccc'; li.style.padding='8px 0';
+    li.innerHTML=`<strong>To:</strong> ${m.recipient} | <strong>Subject:</strong> ${m.subject}<br>${m.message} <em style="font-size:0.8rem;color:#666;">(${m.date})</em>`;
+    ul.appendChild(li);
+  });
+}
+renderMessages();
+
+// Reports
+const reports=[{id:101,title:"Patient Admission",createdBy:"Admin",date:"2025-10-04",status:"Completed"},{id:102,title:"Weekly Doctor Report",createdBy:"Admin",date:"2025-10-03",status:"Pending"},{id:103,title:"Patient Feedback Summary",createdBy:"Admin",date:"2025-10-02",status:"Completed"}];
+function renderReports(){
+  const tbody=document.getElementById('reportsTableBody');
+  tbody.innerHTML=''; reports.forEach(r=>{const tr=document.createElement('tr'); tr.innerHTML=`<td>${r.id}</td><td>${r.title}</td><td>${r.createdBy}</td><td>${r.date}</td><td>${r.status}</td>`; tbody.appendChild(tr);});
+}
+renderReports();
+
+// Update Admin Name
+function updateAdminName(){
+  const name=document.getElementById('adminNameInput').value.trim();
+  if(!name){alert("Enter a name");return;}
+  document.querySelector('#dashboardSection h1 span').innerText=name;
+  alert("Admin name updated!");
+}
+
+// Redirect to Performance Page
+document.getElementById('goPerformanceBtn').addEventListener('click',()=>{
+  window.location.href='performance.html';
+});
+
+// Charts
+const ctxUser=document.getElementById('userRegistrationsChart').getContext('2d');
+new Chart(ctxUser,{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat'],datasets:[{label:'Registrations',data:[10,20,40,35,45,30],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+const ctxReport=document.getElementById('reportSubmissionsChart').getContext('2d');
+new Chart(ctxReport,{type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'Reports',data:[50,60,70,90,75,88],backgroundColor:'#60a5fa'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+const ctxRoles=document.getElementById('userRolesChart').getContext('2d');
+new Chart(ctxRoles,{type:'pie',data:{labels:['Admin','Doctor','Nurse','Patient'],datasets:[{data:[5,20,10,115],backgroundColor:['#3b82f6','#60a5fa','#93c5fd','#bfdbfe']}]},options:{responsive:true}});
+</script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor–Patient Chat Assistant (Advanced)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --doctor:#3b82f6;
+  --patient:#10b981;
+  --bg:#f4f6fb;
+  --text:#111827;
+  --muted:#6b7280;
+  --card:#ffffff;
+}
+
+* { box-sizing:border-box; font-family:'Poppins',sans-serif; margin:0; padding:0; }
+
+body {
+  background:var(--bg);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+header {
+  background:var(--doctor);
+  color:white;
+  padding:1rem 2rem;
+  text-align:center;
+  font-size:1.5rem;
+  font-weight:600;
+}
+
+.main {
+  flex:1;
+  display:flex;
+  height:calc(100vh - 70px);
+}
+
+/* Sidebar */
+.sidebar {
+  width:260px;
+  background:#fff;
+  border-right:1px solid #e5e7eb;
+  padding:1rem;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.patient-card {
+  text-align:center;
+}
+.patient-card img {
+  width:90px; height:90px; border-radius:50%;
+  border:3px solid var(--doctor);
+  margin-bottom:10px;
+}
+.patient-card h2 {
+  font-size:1.1rem;
+  color:var(--text);
+}
+.patient-card p {
+  color:var(--muted);
+  font-size:0.9rem;
+}
+
+.side-actions button {
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.3s;
+}
+.side-actions button.consult {
+  background:var(--doctor); color:white;
+}
+.side-actions button.consult:hover {
+  opacity:0.9;
+}
+.side-actions button.end {
+  background:var(--patient); color:white;
+}
+.side-actions button.end:hover {
+  opacity:0.9;
+}
+
+/* Chat Section */
+.chat-container {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:#eef2ff;
+}
+
+.chat-messages {
+  flex:1;
+  padding:1rem 1.5rem;
+  overflow-y:auto;
+  scroll-behavior:smooth;
+}
+
+.message {
+  margin-bottom:14px;
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+  animation:fadeIn 0.25s ease-in;
+}
+
+@keyframes fadeIn { from {opacity:0; transform:translateY(5px);} to {opacity:1; transform:translateY(0);} }
+
+.avatar {
+  width:42px; height:42px; border-radius:50%; background:#dbeafe;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:var(--doctor);
+  flex-shrink:0;
+}
+
+.bubble {
+  padding:10px 14px;
+  border-radius:12px;
+  max-width:70%;
+  font-size:0.95rem;
+  line-height:1.4;
+}
+
+.message.doctor .bubble {
+  background:var(--doctor);
+  color:#fff;
+  border-bottom-left-radius:0;
+}
+.message.patient {
+  flex-direction:row-reverse;
+}
+.message.patient .avatar {
+  background:#d1fae5; color:var(--patient);
+}
+.message.patient .bubble {
+  background:var(--patient);
+  color:white;
+  border-bottom-right-radius:0;
+}
+
+.timestamp {
+  font-size:0.7rem;
+  color:var(--muted);
+  margin-top:2px;
+  text-align:right;
+}
+
+/* Input area */
+.chat-input {
+  display:flex;
+  border-top:1px solid #d1d5db;
+  background:white;
+  padding:8px;
+  gap:8px;
+}
+.chat-input input {
+  flex:1;
+  border:none;
+  outline:none;
+  padding:12px;
+  border-radius:8px;
+  background:#f3f4f6;
+  font-size:1rem;
+}
+.chat-input button {
+  background:var(--doctor);
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:12px 20px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.3s;
+}
+.chat-input button:hover {
+  background:#2563eb;
+}
+
+.typing {
+  background:#e5e7eb;
+  color:#374151;
+  font-style:italic;
+  padding:8px 12px;
+  border-radius:8px;
+  margin:10px;
+  display:inline-block;
+  animation:blink 1s infinite;
+}
+@keyframes blink {
+  0%,100%{opacity:1;} 50%{opacity:0.5;}
+}
+
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{display:none;}
+  header{font-size:1.2rem;}
+}
+</style>
+</head>
+<body>
+
+<header>💬 Doctor–Patient Smart Chat Assistant</header>
+
+<div class="main">
+  <div class="sidebar">
+    <div>
+      <div class="patient-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/706/706830.png" alt="Patient">
+        <h2>Arjun Rao</h2>
+        <p>Age: 29 | ID: P1024</p>
+      </div>
+    </div>
+
+    <div class="side-actions">
+      <button class="consult" onclick="simulateDoctorJoin()">👨‍⚕️ Consult Doctor</button>
+      <button class="end" onclick="endChat()">🚪 End Chat</button>
+    </div>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type your question..." onkeypress="handleKey(event)">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const userInput = document.getElementById('userInput');
+
+// Initial welcome
+appendMessage("Hello, I'm your medical assistant. How can I help you today?", "doctor");
+
+// Append message
+function appendMessage(text, sender){
+  const msg = document.createElement('div');
+  msg.classList.add('message', sender);
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = sender === 'doctor' ? 'Dr' : 'Pt';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  const time = document.createElement('div');
+  time.className = 'timestamp';
+  time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  msg.appendChild(avatar);
+  msg.appendChild(bubble);
+  msg.appendChild(time);
+
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  saveChatHistory();
+}
+
+// Handle send
+function handleKey(e){ if(e.key === 'Enter') sendMessage(); }
+
+function sendMessage(){
+  const text = userInput.value.trim();
+  if(!text) return;
+  appendMessage(text, "patient");
+  userInput.value = '';
+
+  // Simulate typing
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const reply = generateReply(text);
+    appendMessage(reply, "doctor");
+  }, 1200);
+}
+
+// Typing simulation
+let typingEl;
+function showTyping(){
+  typingEl = document.createElement('div');
+  typingEl.className = 'typing';
+  typingEl.textContent = 'Assistant is typing...';
+  chatMessages.appendChild(typingEl);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+function hideTyping(){
+  if(typingEl) typingEl.remove();
+}
+
+// Smart replies
+function generateReply(text){
+  const t = text.toLowerCase();
+  if(t.includes('appointment')) return "You can schedule or reschedule your appointment directly from the dashboard.";
+  if(t.includes('pain') || t.includes('fever')) return "I'm sorry to hear that. Since you have symptoms, I recommend consulting Dr. Sharma (available now).";
+  if(t.includes('hello') || t.includes('hi')) return "Hello! How are you feeling today?";
+  if(t.includes('prescription')) return "You can view or renew your prescription in your profile section.";
+  if(t.includes('blood') || t.includes('report')) return "Your latest blood report shows normal range values. Would you like a detailed view?";
+  if(t.includes('thank')) return "You're welcome 😊. I’m always here to help!";
+  return "Let me connect you to a doctor for better assistance.";
+}
+
+// Simulate doctor join
+function simulateDoctorJoin(){
+  appendMessage("Doctor Mehta has joined the chat. How can I assist you today?", "doctor");
+}
+
+// End chat
+function endChat(){
+  appendMessage("Chat ended. Thank you for consulting with us.", "doctor");
+  userInput.disabled = true;
+  document.querySelector('.chat-input button').disabled = true;
+}
+
+// Persistent chat (localStorage)
+function saveChatHistory(){
+  localStorage.setItem('chatHistory', chatMessages.innerHTML);
+}
+function loadChatHistory(){
+  const data = localStorage.getItem('chatHistory');
+  if(data) chatMessages.innerHTML = data;
+}
+loadChatHistory();
+</script>
+</body>
+</html>

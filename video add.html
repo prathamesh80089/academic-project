@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start & Destination Example</title>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+  }
+  h1 {
+    text-align: center;
+    padding: 10px;
+    color: #333;
+  }
+  #map {
+    height: 500px;        /* map height */
+    width: 90%;           /* map width */
+    margin: 20px auto;    /* center horizontally */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .leaflet-popup-content {
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Start & Destination on Map</h1>
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// 1. Initialize the map
+const map = L.map('map').setView([19.0760, 72.8777], 13); // starting center (Mumbai)
+
+// 2. Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+// 3. Define Start and Destination coordinates
+const start = [19.0760, 72.8777];       // Clinic A
+const destination = [19.0850, 72.8820]; // Clinic B
+
+// 4. Add markers
+const startMarker = L.marker(start, {title: 'Start'}).addTo(map)
+  .bindPopup('<b>Start</b><br>Clinic A');
+
+const destMarker = L.marker(destination, {title: 'Destination'}).addTo(map)
+  .bindPopup('<b>Destination</b><br>Clinic B');
+
+// 5. Draw a polyline (route) between them
+const routeLine = L.polyline([start, destination], {
+  color: 'blue',
+  weight: 4,
+  opacity: 0.8
+}).addTo(map);
+
+// 6. Adjust view so everything fits
+map.fitBounds(routeLine.getBounds());
+</script>
+
+</body>
+</html>
+            

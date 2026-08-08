@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Route to Hospital</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html,body {height:100%;margin:0;padding:0;}
+    #map {height:100%;}
+    .info {
+      position:absolute;
+      top:10px;
+      left:10px;
+      background:#fff;
+      padding:8px 12px;
+      z-index:5;
+      border-radius:6px;
+      font-family:sans-serif;
+    }
+    button {padding:6px 10px}
+  </style>
+</head>
+<body>
+<div class="info">
+  <strong>Hospital Route</strong><br>
+  <button onclick="getRoute()">Get Route from my location</button>
+</div>
+<div id="map"></div>
+
+<script>
+  let map, directionsService, directionsRenderer;
+
+  // Hospital location (replace with your hospital’s lat/lng)
+  const hospital = {lat:19.076090, lng:72.877655}; // Mumbai example
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 14,
+      center: hospital
+    });
+
+    new google.maps.Marker({
+      position: hospital,
+      map,
+      title: "Hospital"
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(map);
+  }
+
+  function getRoute() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const myPos = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+        calculateAndDisplayRoute(myPos, hospital);
+      }, err => {
+        alert("Unable to access location: " + err.message);
+      });
+    } else {
+      alert("Geolocation not supported");
+    }
+  }
+
+  function calculateAndDisplayRoute(origin, destination) {
+    directionsService.route(
+      {
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.DRIVING
+      },
+      (response, status) => {
+        if (status === "OK") {
+          directionsRenderer.setDirections(response);
+        } else {
+          alert("Directions request failed: " + status);
+        }
+      }
+    );
+  }
+</script>
+<!-- Replace YOUR_API_KEY with your Google Maps JavaScript API key -->
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+</script>
+</body>
+</html>

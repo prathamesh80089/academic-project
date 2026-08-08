@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Medical System - Login</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body { background: linear-gradient(135deg,#e6f4ea,#b2dfdb); font-family: Arial,sans-serif; padding-top: 50px; min-height: 100vh;}
+.card { background:#ffffffdd; border:1px solid #c8e6c9; border-radius:12px; box-shadow:0 4px 10px rgba(0,128,0,0.1); padding: 20px;}
+h2 { color:#2e7d32; text-align:center;}
+label { display:block; margin-top:10px; }
+input, select { width:100%; padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; }
+.btn { margin-top:15px; width:100%; padding:10px; border:none; border-radius:6px; background:#2e7d32; color:white; font-weight:bold; cursor:pointer; }
+.btn:hover { background:#256028; }
+.auth-section { display:none; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN FORM -->
+<div class="container auth-section" id="login-section" style="display:block; max-width:400px;">
+  <div class="card mx-auto">
+    <h2>Login</h2>
+    <label>Email</label><input type="email" id="loginEmail">
+    <label>Password</label><input type="password" id="loginPassword">
+    <button class="btn" onclick="login()">Login</button>
+    <p class="text-center mt-2">
+      <a href="#" onclick="showForm('register-section')">Sign Up</a> | 
+      <a href="#" onclick="showForm('forgot-section')">Forgot Password?</a>
+    </p>
+  </div>
+</div>
+
+<!-- REGISTER FORM -->
+<div class="container auth-section" id="register-section" style="max-width:400px;">
+  <div class="card mx-auto">
+    <h2>Sign Up</h2>
+    <label>Name</label><input type="text" id="registerName">
+    <label>Email</label><input type="email" id="registerEmail">
+    <label>Password</label><input type="password" id="registerPassword">
+    <label>Confirm Password</label><input type="password" id="registerConfirmPassword">
+    <label>Role</label>
+    <select id="registerRole" class="form-select">
+      <option value="">Select Role</option>
+      <option value="admin">Admin</option>
+      <option value="doctor">Doctor</option>
+      <option value="nurse">Nurse</option>
+      <option value="patient">Patient</option>
+    </select>
+    <button class="btn" onclick="register()">Sign Up</button>
+    <p class="text-center mt-2"><a href="#" onclick="showForm('login-section')">Back to Login</a></p>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div class="container auth-section" id="forgot-section" style="max-width:400px;">
+  <div class="card mx-auto">
+    <h2>Forgot Password</h2>
+    <label>Email</label><input type="email" id="forgotEmail">
+    <button class="btn" onclick="forgotPassword()">Reset Password</button>
+    <p class="text-center mt-2"><a href="#" onclick="showForm('login-section')">Back to Login</a></p>
+  </div>
+</div>
+
+<!-- 2FA FORM -->
+<div class="container auth-section" id="twofa-section" style="max-width:400px;">
+  <div class="card mx-auto">
+    <h2>Two-Factor Authentication</h2>
+    <p class="text-muted">Enter the 6-digit OTP sent to your phone/email (demo: <b id="demoOTP"></b>)</p>
+    <input type="text" id="twofaCode" maxlength="6">
+    <button class="btn" onclick="verify2FA()">Verify</button>
+  </div>
+</div>
+
+<script>
+// In-memory demo users
+let users = [
+  {name:"Admin", email:"admin@gmail.com", password:"admin123", role:"admin"},
+  {name:"Doctor", email:"doctor@gmail.com", password:"doc123", role:"doctor"},
+  {name:"Nurse", email:"nurse@gmail.com", password:"nurse123", role:"nurse"},
+  {name:"Patient", email:"patient@gmail.com", password:"patient123", role:"patient"}
+];
+
+let tempUser = null;
+let currentOTP = null;
+
+function showForm(id){
+  document.querySelectorAll('.auth-section').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+// REGISTER
+function register(){
+  const name = document.getElementById("registerName").value.trim();
+  const email = document.getElementById("registerEmail").value.trim();
+  const password = document.getElementById("registerPassword").value;
+  const confirm = document.getElementById("registerConfirmPassword").value;
+  const role = document.getElementById("registerRole").value;
+
+  if(!name || !email || !password || !confirm || !role){
+    alert("Fill all fields!");
+    return;
+  }
+  if(password !== confirm){
+    alert("Passwords do not match!");
+    return;
+  }
+  if(users.find(u=>u.email===email)){
+    alert("Email already registered!");
+    return;
+  }
+  users.push({name,email,password,role});
+  alert("Registration successful! Login now.");
+  showForm('login-section');
+}
+
+// LOGIN
+function login(){
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const user = users.find(u=>u.email===email && u.password===password);
+  if(!user){ alert("Invalid credentials"); return; }
+  tempUser = user;
+  generateOTP();
+  showForm('twofa-section');
+}
+
+// GENERATE DEMO OTP
+function generateOTP(){
+  currentOTP = Math.floor(100000 + Math.random()*900000);
+  document.getElementById("demoOTP").innerText = currentOTP;
+}
+
+// VERIFY 2FA
+function verify2FA(){
+  const code = document.getElementById("twofaCode").value;
+  if(code == currentOTP){
+    alert(`Login successful! Welcome ${tempUser.name} (${tempUser.role})`);
+    // Redirect based on role
+    if(tempUser.role === "admin") window.location.href="admin-dashboard.html";
+    else if(tempUser.role === "doctor") window.location.href="doctor-dashboard.html";
+    else if(tempUser.role === "nurse") window.location.href="nurse-dashboard.html";
+    else window.location.href="patient-dashboard.html";
+  } else {
+    alert("Invalid OTP!");
+  }
+}
+
+// FORGOT PASSWORD (demo)
+function forgotPassword(){
+  const email = document.getElementById("forgotEmail").value.trim();
+  const user = users.find(u=>u.email===email);
+  if(!user){ alert("Email not found!"); return; }
+  const newPass = prompt("Enter new password:");
+  if(newPass){ user.password = newPass; alert("Password updated! Login now."); showForm('login-section'); }
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

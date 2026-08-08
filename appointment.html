@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Appointment - RBAC Medical</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #e6f4ea; padding: 70px 20px 20px 20px; }
+  h2 { color: #2e7d32; text-align: center; margin-bottom: 20px; }
+  .form-container { max-width: 600px; margin: 0 auto 40px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,128,0,0.1); }
+  label { font-weight: bold; display: block; margin-top: 10px; }
+  input, select, textarea, button { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem; }
+  button { margin-top: 15px; background: #2e7d32; color: #fff; font-weight: bold; cursor: pointer; transition: background 0.3s, transform 0.3s; }
+  button:hover { background: #1b4f1b; transform: scale(1.05); }
+  .doctor-info { margin-top:10px; color:#2e7d32; cursor:pointer; text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<h2>Book a Medical Appointment</h2>
+
+<div class="form-container">
+  <label for="name">Patient Name</label>
+  <input type="text" id="name" placeholder="Enter your name" required>
+
+  <label for="address">Address</label>
+  <input type="text" id="address" placeholder="Enter your address" required>
+
+  <label for="doctor">Select Doctor</label>
+  <select id="doctor" onchange="showDoctorInfo()">
+    <option value="">Choose...</option>
+    <option value="Dr. John Smith|Cardiologist|10 years experience|Mon-Fri 10am-4pm">Dr. John Smith - Cardiologist</option>
+    <option value="Dr. Alice Brown|Dermatologist|7 years experience|Tue-Thu 11am-3pm">Dr. Alice Brown - Dermatologist</option>
+  </select>
+
+  <div id="doctorInfo" class="doctor-info" style="display:none;" onclick="viewDoctorDetails()"></div>
+
+  <label for="date">Select Date</label>
+  <input type="date" id="date" required>
+
+  <label for="time">Select Time</label>
+  <input type="time" id="time" required>
+
+  <label for="reason">Reason for Visit</label>
+  <textarea id="reason" rows="3" placeholder="Enter reason for visit" required></textarea>
+
+  <button onclick="bookAppointment()">Book Appointment</button>
+</div>
+
+<script>
+function showDoctorInfo() {
+  const select = document.getElementById("doctor");
+  const infoDiv = document.getElementById("doctorInfo");
+  if(select.value){
+    const parts = select.value.split("|");
+    infoDiv.innerHTML = `<strong>${parts[0]}</strong> - ${parts[1]} (Click for details)`;
+    infoDiv.style.display = 'block';
+    // Store selected doctor info for doctor.html
+    localStorage.setItem('selectedDoctor', JSON.stringify({name: parts[0], specialization: parts[1], experience: parts[2], availability: parts[3]}));
+  } else {
+    infoDiv.style.display = 'none';
+  }
+}
+
+// Redirect to doctor.html
+function viewDoctorDetails(){
+  window.location.href = 'doctor.html';
+}
+
+function bookAppointment(){
+  const name = document.getElementById("name").value;
+  const address = document.getElementById("address").value;
+  const doctor = document.getElementById("doctor").value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+  const reason = document.getElementById("reason").value;
+
+  if(!name || !address || !doctor || !date || !time || !reason){
+    alert("Please fill all fields.");
+    return;
+  }
+
+  // Save appointment
+  const appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
+  appointments.push({name, address, doctor, date, time, reason});
+  localStorage.setItem("appointments", JSON.stringify(appointments));
+
+  alert("Appointment booked successfully!");
+  window.location.href = "patient.html"; // redirect after booking
+}
+</script>
+
+</body>
+</html>

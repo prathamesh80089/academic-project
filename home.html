@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home - RBAC Medical</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* General */
+  * { box-sizing:border-box; margin:0; padding:0; font-family:'Inter', sans-serif; }
+  body { line-height:1.6; color:#333; background:#f9f9f9; }
+
+  /* Header */
+  .header { background:#fff; display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; box-shadow:0 2px 4px rgba(0,0,0,0.1); position:sticky; top:0; z-index:10; }
+  .logo { display:flex; align-items:center; font-size:1.2rem; font-weight:700; color:#004aad; }
+  .logo img { width:40px; margin-right:8px; }
+  .nav-links { list-style:none; display:flex; }
+  .nav-links li { margin-left:1.5rem; }
+  .nav-links a { text-decoration:none; color:#333; font-weight:600; transition:color 0.3s; }
+  .nav-links a:hover, .nav-links a.active { color:#004aad; }
+
+  /* Hero Section */
+  .hero { text-align:center; padding:4rem 2rem; background:#004aad; color:#fff; animation:fadeIn 1s ease; }
+  .hero h1 { font-size:2rem; margin-bottom:1rem; }
+  .hero p { margin-bottom:2rem; }
+  .btn-about { display:inline-block; padding:0.75rem 1.5rem; background:#fff; color:#004aad; border-radius:5px; font-weight:bold; cursor:pointer; transition: background 0.3s, transform 0.3s; }
+  .btn-about:hover { background:#f0f0f0; transform:scale(1.05); }
+
+  /* Footer */
+  footer { text-align:center; padding:1rem; background:#fff; margin-top:2rem; box-shadow:0 -2px 4px rgba(0,0,0,0.1); }
+
+  /* Animations */
+  @keyframes fadeIn { 0% {opacity:0;} 100% {opacity:1;} }
+</style>
+</head>
+<body>
+
+
+  <nav>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Welcome to RBAC Medical</h1>
+  <p>Delivering high-quality healthcare for a better tomorrow.</p>
+  <button class="btn-about" id="btn-about">Learn More About Us</button>
+</section>
+
+<footer>
+  &copy; 2025 RBAC Medical. All rights reserved.
+</footer>
+
+<script>
+  // Redirect to about.html when button is clicked
+  document.getElementById('btn-about').addEventListener('click', function() {
+    window.location.href = 'about.html';
+  });
+</script>
+
+</body>
+</html>

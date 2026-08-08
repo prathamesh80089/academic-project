@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Medical Feedback Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark { background: #111827; color: #f3f4f6; }
+    .container {
+      background: #fff;
+      margin: 30px;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 700px;
+      width: 100%;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark .container { background: #1f2937; color: #f3f4f6; }
+    h2 { margin-top: 0; }
+    label { display: block; margin: 12px 0 4px; font-weight: 600; }
+    input, textarea, select {
+      width: 100%; padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    body.dark input, body.dark textarea, body.dark select {
+      background: #374151; color: #f3f4f6; border: 1px solid #4b5563;
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    .rating { display: flex; gap: 6px; margin: 8px 0; }
+    .star { font-size: 24px; cursor: pointer; color: #d1d5db; }
+    .star.active { color: #f59e0b; }
+    .char-count { font-size: 12px; color: #6b7280; }
+    .progress-bar {
+      height: 6px; border-radius: 3px; background: #e5e7eb;
+      margin-top: 4px; overflow: hidden;
+    }
+    .progress { height: 100%; background: #2563eb; width: 0%; transition: width 0.3s; }
+    .error { font-size: 13px; color: #dc2626; }
+    button {
+      margin-top: 15px; padding: 10px 16px;
+      border: none; border-radius: 6px;
+      background: #2563eb; color: #fff; font-size: 14px;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    #preview {
+      margin-top: 20px; padding: 10px;
+      border: 1px dashed #d1d5db; border-radius: 6px;
+      background: #f9fafb; font-size: 14px;
+    }
+    body.dark #preview { background: #374151; border-color: #4b5563; }
+    .toggle { margin-bottom: 10px; cursor: pointer; font-size: 14px; }
+    /* Modal */
+    .modal {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.6); display:none;
+      justify-content:center; align-items:center;
+    }
+    .modal-content {
+      background:#fff; padding:20px; border-radius:8px;
+      max-width:400px; width:90%; text-align:center;
+    }
+    .modal-content button {
+      margin-top:10px; background:#16a34a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toggle" id="darkToggle">🌙 Dark Mode</div>
+    <h2>Medical Feedback Form</h2>
+    <form id="feedbackForm">
+      <label for="name">Name</label>
+      <input type="text" id="name" required>
+      <div class="error" id="nameError"></div>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" required>
+      <div class="error" id="emailError"></div>
+
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" placeholder="+91 9876543210">
+      
+      <label for="service">Service / Care</label>
+      <select id="service" required>
+        <option value="">-- Select Service --</option>
+        <option value="doctor">Doctor Consultation</option>
+        <option value="nurse">Nursing Care</option>
+        <option value="pharmacy">Pharmacy Service</option>
+        <option value="lab">Lab & Diagnostics</option>
+        <option value="emergency">Emergency / Ambulance</option>
+        <option value="billing">Billing & Insurance</option>
+        <option value="support">General Support</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="priority">Priority</label>
+      <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="urgent">Urgent</option>
+      </select>
+
+      <label>Rating</label>
+      <div class="rating" id="ratingStars">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+      </div>
+      <div id="ratingValue" class="char-count">No rating</div>
+
+      <label for="message">Message</label>
+      <textarea id="message" maxlength="500" required></textarea>
+      <div class="char-count" id="charCount">0 / 500</div>
+      <div class="progress-bar"><div class="progress" id="progress"></div></div>
+      <div class="error" id="messageError"></div>
+
+      
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="preview">
+      <strong>Live Preview:</strong>
+      <div id="previewContent">Start typing to see preview...</div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3>✅ Feedback Submitted</h3>
+      <p>Thank you for helping us improve our services.</p>
+      <button id="closeModal">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("feedbackForm");
+    const nameEl = document.getElementById("name");
+    const emailEl = document.getElementById("email");
+    const messageEl = document.getElementById("message");
+    const charCount = document.getElementById("charCount");
+    const progress = document.getElementById("progress");
+    const previewContent = document.getElementById("previewContent");
+    const stars = document.querySelectorAll(".star");
+    const ratingValue = document.getElementById("ratingValue");
+    const modal = document.getElementById("modal");
+    const closeModal = document.getElementById("closeModal");
+    const darkToggle = document.getElementById("darkToggle");
+
+    let selectedRating = 0;
+
+    // Star rating
+    stars.forEach(star => {
+      star.addEventListener("click", () => {
+        selectedRating = star.getAttribute("data-value");
+        stars.forEach(s => s.classList.remove("active"));
+        for (let i = 0; i < selectedRating; i++) {
+          stars[i].classList.add("active");
+        }
+        ratingValue.textContent = `Rating: ${selectedRating} / 5`;
+      });
+    });
+
+    // Character counter + progress bar + preview
+    messageEl.addEventListener("input", () => {
+      const len = messageEl.value.length;
+      charCount.textContent = `${len} / 500`;
+      progress.style.width = `${(len/500)*100}%`;
+      previewContent.textContent = messageEl.value || "Start typing to see preview...";
+    });
+
+    // Dark mode toggle
+    darkToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+    });
+
+    // Validation + submit
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      let valid = true;
+
+      if (nameEl.value.trim() === "") {
+        document.getElementById("nameError").textContent = "Name is required.";
+        valid = false;
+      } else {
+        document.getElementById("nameError").textContent = "";
+      }
+
+      if (emailEl.value.trim() === "" || !emailEl.value.includes("@")) {
+        document.getElementById("emailError").textContent = "Valid email is required.";
+        valid = false;
+      } else {
+        document.getElementById("emailError").textContent = "";
+      }
+
+      if (messageEl.value.trim().length < 20) {
+        document.getElementById("messageError").textContent = "Message must be at least 20 characters.";
+        valid = false;
+      } else {
+        document.getElementById("messageError").textContent = "";
+      }
+
+      if (valid) {
+        modal.style.display = "flex";
+        form.reset();
+        charCount.textContent = "0 / 500";
+        progress.style.width = "0%";
+        previewContent.textContent = "Start typing to see preview...";
+        ratingValue.textContent = "No rating";
+        stars.forEach(s => s.classList.remove("active"));
+        selectedRating = 0;
+      }
+    });
+
+    // Close modal
+    closeModal.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  </script>
+</body>
+</html>

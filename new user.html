@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add New User</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {margin:0;font-family:'Inter',sans-serif;display:flex;background:#f1f5f9;}
+  .sidebar {width:250px;background:#183153;color:#fff;display:flex;flex-direction:column;min-height:100vh;padding:20px 0;}
+  .sidebar h2 {text-align:center;font-size:1.5rem;margin-bottom:2rem;}
+  .sidebar ul {list-style:none;}
+  .sidebar ul li {padding:15px 20px;cursor:pointer;transition:background .3s;display:flex;align-items:center;}
+  .sidebar ul li:hover {background:#0f2642;}
+  .main-content {flex:1;padding:30px;}
+  .header {display:flex;justify-content:space-between;align-items:center;}
+  .header h1 {font-size:1.8rem;font-weight:600;}
+  .header h1 span {color:#3b82f6;}
+  form {background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-top:20px;max-width:500px;}
+  form label {display:block;margin-bottom:8px;font-weight:600;}
+  form input,form select {width:100%;padding:10px;margin-bottom:15px;border:1px solid #d1d5db;border-radius:8px;}
+  form button {background:#3b82f6;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Admin</h2>
+    <ul>
+      <li onclick="location.href='admin-dashboard.html'">📊 Dashboard</li>
+      <li onclick="location.href='user.html'">👥 Users</li>
+      <li onclick="location.href='report.html'">📑 Reports</li>
+      <li>💬 Messages</li>
+      <li onclick="location.href='setting.html'">⚙ Settings</li>
+      <li style="margin-top:auto;color:#f87171;">🚪 Logout</li>
+    </ul>
+  </div>
+  <div class="main-content">
+    <div class="header">
+      <h1>Add <span>New User</span></h1>
+    </div>
+    <form>
+      <label>Full Name</label>
+      <input type="text" placeholder="Enter full name">
+      <label>Email</label>
+      <input type="email" placeholder="Enter email">
+      <label>Role</label>
+      <select>
+        <option>Admin</option>
+        <option>Doctor</option>
+        <option>Nurse</option>
+        <option>Patient</option>
+      </select>
+      <label>Password</label>
+      <input type="password" placeholder="Enter password">
+      <button type="submit">Create User</button>
+    </form>
+  </div>
+</body>
+</html>

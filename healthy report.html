@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* -------------------- CSS -------------------- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #eef2f7;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0d3b66;
+}
+
+canvas {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+#tips {
+    background: #fff9e6;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#tips ul {
+    padding-left: 20px;
+}
+
+#tips li {
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #8a4b08;
+}
+
+button {
+    display: block;
+    margin: 20px auto;
+    background: #0d3b66;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background: #08457e;
+    transition: 0.3s;
+}
+</style>
+</head>
+<body>
+
+<h1>Health Dashboard</h1>
+
+<h2>Comparative Chart: Weight, BP & Sugar</h2>
+<canvas id="healthChart" width="600" height="400"></canvas>
+
+<button onclick="generateTips()">Generate Health Tips</button>
+
+<h2>Health Tips</h2>
+<div id="tips"></div>
+
+<script>
+// -------------------- JS --------------------
+
+// Sample historical data
+const months = ["Month 1","Month 2","Month 3","Month 4","Month 5"];
+const weightBefore = [75, 74, 73, 72, 71];
+const weightAfter  = [70, 70.5, 71, 71.5, 72];
+
+const bpSystolicBefore = [140,138,135,132,130];
+const bpSystolicAfter  = [130,128,127,125,123];
+
+const sugarBefore = [110, 108, 105, 103, 100];
+const sugarAfter  = [100, 98, 97, 96, 95];
+
+// -------------------- Chart Setup --------------------
+const ctx = document.getElementById('healthChart').getContext('2d');
+const healthChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [
+            { label: 'Weight Before', data: weightBefore, borderColor: 'red', fill: false, tension:0.3 },
+            { label: 'Weight After',  data: weightAfter,  borderColor: 'green', fill: false, tension:0.3 },
+            { label: 'BP Systolic Before', data: bpSystolicBefore, borderColor: 'blue', fill: false, tension:0.3 },
+            { label: 'BP Systolic After',  data: bpSystolicAfter,  borderColor: 'orange', fill: false, tension:0.3 },
+            { label: 'Sugar Before', data: sugarBefore, borderColor: 'purple', fill: false, tension:0.3 },
+            { label: 'Sugar After',  data: sugarAfter,  borderColor: 'brown', fill: false, tension:0.3 }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Before vs After Treatment' }
+        },
+        scales: { y: { beginAtZero: false } }
+    }
+});
+
+// -------------------- Generate Health Tips --------------------
+function generateTips(){
+    const tipsDiv = document.getElementById('tips');
+    let tips = [];
+
+    // Weight trend
+    let latestWeightDiff = weightAfter[weightAfter.length-1] - weightBefore[weightBefore.length-1];
+    if(latestWeightDiff < 0) tips.push("Good progress! Weight is reducing steadily.");
+    else if(latestWeightDiff > 2) tips.push("Weight increasing! Follow a balanced diet and exercise.");
+
+    // BP trend
+    let latestBpDiff = bpSystolicAfter[bpSystolicAfter.length-1] - bpSystolicBefore[bpSystolicBefore.length-1];
+    if(latestBpDiff < 0) tips.push("BP improved! Continue lifestyle control.");
+    else if(latestBpDiff > 0) tips.push("BP rising! Schedule consultation with your doctor.");
+
+    // Sugar trend
+    let latestSugarDiff = sugarAfter[sugarAfter.length-1] - sugarBefore[sugarBefore.length-1];
+    if(latestSugarDiff < 0) tips.push("Sugar level improving! Maintain healthy eating.");
+    else if(latestSugarDiff > 0) tips.push("Sugar rising! Consult your doctor and check diet.");
+
+    // Display tips
+    if(tips.length === 0) tips.push("All values are stable. Keep monitoring regularly.");
+
+    tipsDiv.innerHTML = `<ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+}
+</script>
+
+</body>
+</html>

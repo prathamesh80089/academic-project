@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical System Integrations</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{background:#f1f5f9;padding:20px;}
+.container{max-width:900px;margin:0 auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+h2{color:#0077b6;margin-bottom:15px;}
+section{margin-bottom:30px;}
+label{display:block;margin:10px 0 5px;}
+input,select,button,textarea{width:100%;padding:8px;margin-bottom:10px;border-radius:5px;border:1px solid #ccc;}
+button{background:#0077b6;color:white;border:none;cursor:pointer;}
+button:hover{background:#023e8a;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #ccc;padding:8px;text-align:center;}
+iframe{width:100%;height:400px;border:1px solid #ccc;border-radius:5px;}
+.error{color:red;font-size:0.9rem;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Lab Results Integration -->
+  <section id="labResults">
+    <h2>Lab Results</h2>
+    <form id="labForm">
+      <label>Upload Lab Report (PDF/Image)</label>
+      <input type="file" id="labFile" accept=".pdf,image/*" required>
+      <label>Test Name</label>
+      <input type="text" id="testName" placeholder="e.g., Blood Sugar" required>
+      <label>Result Value</label>
+      <input type="text" id="testValue" placeholder="e.g., 110 mg/dL" required>
+      <button type="submit">Add Lab Result</button>
+      <p id="labMsg" class="error"></p>
+    </form>
+    <table>
+      <thead>
+        <tr><th>Test</th><th>Value</th><th>Preview</th></tr>
+      </thead>
+      <tbody id="labTable"></tbody>
+    </table>
+    <canvas id="labChart" style="margin-top:20px;"></canvas>
+  </section>
+
+  <!-- Telemedicine / Video Call -->
+  <section id="telemedicine">
+    <h2>Video Consultation</h2>
+    <label>Patient Name</label>
+    <input type="text" id="patientName" placeholder="Enter patient name">
+    <label>Doctor</label>
+    <select id="doctorSelect">
+      <option value="">--Select Doctor--</option>
+      <option value="Dr. Sawant">Dr. Sawant</option>
+      <option value="Dr. Patil">Dr. Patil</option>
+    </select>
+    <button onclick="startCall()">Start Video Call</button>
+    <p id="callMsg" class="error"></p>
+    <iframe id="videoCall" style="display:none;"></iframe>
+  </section>
+
+  <!-- Payment / Billing -->
+  <section id="billing">
+    <h2>Payment / Billing</h2>
+    <form id="paymentForm">
+      <label>Patient Name</label>
+      <input type="text" id="billPatient" placeholder="Enter patient name" required>
+      <label>Service</label>
+      <input type="text" id="billService" placeholder="e.g., Consultation, Lab Test" required>
+      <label>Amount</label>
+      <input type="number" id="billAmount" placeholder="Amount in USD" required>
+      <button type="submit">Generate Invoice</button>
+      <p id="billMsg" class="error"></p>
+    </form>
+    <table>
+      <thead><tr><th>Patient</th><th>Service</th><th>Amount</th></tr></thead>
+      <tbody id="billTable"></tbody>
+    </table>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Lab Results
+const labForm=document.getElementById('labForm');
+const labTable=document.getElementById('labTable');
+const labChartCtx=document.getElementById('labChart').getContext('2d');
+let labData=[];
+
+labForm.addEventListener('submit',function(e){
+  e.preventDefault();
+  const file=document.getElementById('labFile').files[0];
+  const testName=document.getElementById('testName').value.trim();
+  const testValue=document.getElementById('testValue').value.trim();
+  const labMsg=document.getElementById('labMsg');
+  labMsg.textContent='';
+  if(!file || !testName || !testValue){ labMsg.textContent='All fields required'; return; }
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const row=document.createElement('tr');
+    row.innerHTML=`<td>${testName}</td><td>${testValue}</td><td><a href="${e.target.result}" target="_blank">View</a></td>`;
+    labTable.appendChild(row);
+    labData.push({label:testName,value:parseFloat(testValue)||0});
+    updateLabChart();
+  }
+  reader.readAsDataURL(file);
+  this.reset();
+});
+
+function updateLabChart(){
+  const labels=labData.map(d=>d.label);
+  const values=labData.map(d=>d.value);
+  new Chart(labChartCtx,{
+    type:'line',
+    data:{labels, datasets:[{label:'Lab Results', data:values, borderColor:'#0077b6', fill:false, tension:0.3}]},
+    options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+}
+
+// Telemedicine / Video Call
+function startCall(){
+  const patient=document.getElementById('patientName').value.trim();
+  const doctor=document.getElementById('doctorSelect').value;
+  const callMsg=document.getElementById('callMsg');
+  callMsg.textContent='';
+  const video=document.getElementById('videoCall');
+  if(!patient || !doctor){ callMsg.textContent='Enter patient and select doctor'; return; }
+  video.style.display='block';
+  // Using sample video call URL (simulation)
+  video.src='https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
+}
+
+// Payment / Billing
+const paymentForm=document.getElementById('paymentForm');
+const billTable=document.getElementById('billTable');
+
+paymentForm.addEventListener('submit',function(e){
+  e.preventDefault();
+  const patient=document.getElementById('billPatient').value.trim();
+  const service=document.getElementById('billService').value.trim();
+  const amount=document.getElementById('billAmount').value;
+  const billMsg=document.getElementById('billMsg');
+  billMsg.textContent='';
+  if(!patient || !service || !amount){ billMsg.textContent='All fields required'; return; }
+  const row=document.createElement('tr');
+  row.innerHTML=`<td>${patient}</td><td>${service}</td><td>$${parseFloat(amount).toFixed(2)}</td>`;
+  billTable.appendChild(row);
+  this.reset();
+});
+</script>
+</body>
+</html>

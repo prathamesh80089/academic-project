@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nurse Dashboard - Animated</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+body { display: flex; background: #e0f2fe; color: #333; overflow-x: hidden; transition: background 0.5s; }
+
+/* Sidebar */
+.sidebar { 
+  background: #0f172a; color: #fff; width: 250px; min-height: 100vh; 
+  position: fixed; top: 0; left: 0; transform: translateX(-250px); 
+  transition: transform 0.5s ease-in-out, background 0.3s; padding: 1rem; 
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+  z-index: 10;
+}
+.sidebar.open { transform: translateX(0); }
+.sidebar h2 { margin-bottom: 1rem; animation: fadeInDown 0.6s ease forwards; }
+.sidebar ul { list-style: none; padding:0; }
+.sidebar ul li { padding: 10px; cursor: pointer; transition: background 0.3s, transform 0.3s; animation: fadeInRight 0.6s ease forwards; }
+.sidebar ul li:hover { background: rgba(255,255,255,0.15); transform: scale(1.05); }
+#logoutBtn { margin-top: 20px; width: 100%; padding: 10px; border: none; border-radius: 5px; background: #ef4444; color: #fff; cursor: pointer; font-weight: bold; transition: transform 0.2s; }
+#logoutBtn:hover { transform: scale(1.05); }
+
+/* Main Content */
+.main { margin-left: 0; padding: 2rem; width: 100%; transition: margin-left 0.5s ease, opacity 0.5s ease; background: #f0f9ff; min-height: 100vh; }
+.main.shifted { margin-left: 250px; }
+
+/* Toggle Button */
+#toggleSidebar { 
+  background: #0f172a; color: #fff; border: none; padding: 10px 15px; cursor: pointer; 
+  margin-bottom: 1rem; border-radius: 5px; transition: background 0.3s, transform 0.2s; 
+}
+#toggleSidebar:hover { background: #1e293b; transform: scale(1.05); }
+
+/* Section animation */
+.main > div { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.main > div.show { opacity: 1; transform: translateY(0); animation: fadeInUp 0.7s ease forwards; }
+
+/* Patient Table */
+#searchInput { margin-bottom:10px; padding:5px; width:200px; transition: box-shadow 0.3s; }
+#searchInput:focus { box-shadow: 0 0 8px #3b82f6; }
+.patient-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #ffffff; border-radius: 8px; overflow: hidden; }
+.patient-table th, .patient-table td { border-bottom: 1px solid #ddd; padding: 10px; transition: background 0.3s, transform 0.3s; }
+.patient-table th { cursor: pointer; background: #bae6fd; }
+.patient-table th:hover { background: #7dd3fc; transform: scale(1.02); }
+.patient-table tr:hover { background: #e0f2fe; transform: scale(1.01); transition: background 0.3s, transform 0.3s; animation: bounce 0.5s; }
+
+/* Cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.card { 
+  background: #fff8dc; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,.1); 
+  transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; animation: fadeInUp 0.7s ease forwards;
+}
+.card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+
+/* Chart */
+.chart-container { background: #ffffff; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,.1); transition: transform 0.3s; animation: fadeIn 1s ease forwards; }
+.chart-container:hover { transform: scale(1.02); }
+
+/* Reports Table */
+.report-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #ffffff; border-radius: 8px; overflow: hidden; }
+.report-table th, .report-table td { border-bottom: 1px solid #ddd; padding: 10px; transition: background 0.3s; }
+.report-table th { background: #c7d2fe; }
+.report-table tr:hover { background: #e0e7ff; animation: bounce 0.5s; }
+
+/* Settings Form */
+.settings-form { background: #fef9c3; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,.1); max-width: 400px; transition: transform 0.3s; animation: fadeInUp 0.7s ease forwards; }
+.settings-form:hover { transform: scale(1.02); }
+.settings-form label { display: block; margin: 10px 0 5px; }
+.settings-form input, .settings-form select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; transition: box-shadow 0.3s; }
+.settings-form input:focus, .settings-form select:focus { box-shadow: 0 0 8px #3b82f6; }
+
+/* Keyframes */
+@keyframes fadeInUp { 0% {opacity:0; transform:translateY(20px);} 100% {opacity:1; transform:translateY(0);} }
+@keyframes fadeInDown { 0% {opacity:0; transform:translateY(-20px);} 100% {opacity:1; transform:translateY(0);} }
+@keyframes fadeInRight { 0% {opacity:0; transform:translateX(20px);} 100% {opacity:1; transform:translateX(0);} }
+@keyframes fadeIn { 0% {opacity:0;} 100% {opacity:1;} }
+@keyframes bounce { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-5px);} }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <h2>Nurse Panel</h2>
+  <ul>
+    <li data-section="assignedPatientsSection">Assigned Patients</li>
+    <li data-section="medicationSection">Medication Schedule</li>
+    <li data-section="chartSection">Vitals Chart</li>
+    <li data-section="reportsSection">Reports</li>
+    <li data-section="settingsSection">Settings</li>
+  </ul>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<!-- Main Content -->
+<div class="main" id="main">
+  <button id="toggleSidebar">☰ Toggle Sidebar</button>
+
+  <!-- Assigned Patients -->
+  <div id="assignedPatientsSection" class="show">
+    <h2>Assigned Patients</h2>
+    <input type="text" id="searchInput" placeholder="Search patients…">
+    <table class="patient-table" id="patientTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Name ▲▼</th>
+          <th onclick="sortTable(1)">Room ▲▼</th>
+          <th onclick="sortTable(2)">Condition ▲▼</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Alice Cooper</td><td>101</td><td>Asthma</td></tr>
+        <tr><td>David Wilson</td><td>102</td><td>Allergy</td></tr>
+        <tr><td>John Doe</td><td>103</td><td>Diabetes</td></tr>
+        <tr><td>Mary Smith</td><td>104</td><td>Hypertension</td></tr>
+        <tr><td>Robert Brown</td><td>105</td><td>Heart Disease</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Medication Schedule -->
+  <div id="medicationSection" style="display:none;">
+    <h2>Tasks / Medication Schedule</h2>
+    <div class="cards">
+      <div class="card">Check vitals for Room 101 - 9:00 AM</div>
+      <div class="card">Administer insulin to Room 103 - 10:30 AM</div>
+      <div class="card">Give medication to Room 104 - 11:00 AM</div>
+    </div>
+  </div>
+
+  <!-- Vitals Chart -->
+  <div id="chartSection" style="display:none;">
+    <h2>Vitals Chart</h2>
+    <div class="chart-container">
+      <canvas id="myChart" width="400" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Reports -->
+  <div id="reportsSection" style="display:none;">
+    <h2>Patient Reports</h2>
+    <table class="report-table">
+      <thead>
+        <tr><th>Date</th><th>Patient</th><th>Report Type</th><th>Summary</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2025-09-18</td><td>Alice Cooper</td><td>Lab</td><td>Normal</td></tr>
+        <tr><td>2025-09-17</td><td>John Doe</td><td>Blood Sugar</td><td>High</td></tr>
+        <tr><td>2025-09-16</td><td>Mary Smith</td><td>BP Check</td><td>Stable</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Settings -->
+  <div id="settingsSection" style="display:none;">
+    <h2>Settings</h2>
+    <form class="settings-form">
+      <label for="nurseName">Nurse Name</label>
+      <input type="text" id="nurseName" placeholder="Enter your name">
+      <label for="shift">Shift</label>
+      <select id="shift">
+        <option>Morning</option>
+        <option>Evening</option>
+        <option>Night</option>
+      </select>
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email">
+      <button type="submit" style="padding:10px 15px; margin-top:10px; border:none; background:#0f172a; color:#fff; border-radius:5px; cursor:pointer;">Save Settings</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Sidebar toggle
+document.getElementById('toggleSidebar').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('main').classList.toggle('shifted');
+});
+
+// Show/hide sections with animation
+document.querySelectorAll(".sidebar ul li").forEach(item => {
+  item.addEventListener("click", () => {
+    document.querySelectorAll(".main > div").forEach(sec => {
+      sec.classList.remove("show");
+      sec.style.display = "none";
+    });
+    const sectionId = item.getAttribute("data-section");
+    const section = document.getElementById(sectionId);
+    section.style.display = "block";
+    setTimeout(()=>section.classList.add("show"), 50);
+  });
+});
+
+// Logout redirect
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  sessionStorage.clear();
+  window.location.href = "patient dash.html"; 
+});
+
+// Chart.js line chart with animation
+const ctx = document.getElementById('myChart');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM'],
+    datasets: [{
+      label: 'Average Heart Rate',
+      data: [72, 80, 76, 78, 74],
+      backgroundColor: 'rgba(255, 99, 132, 0.3)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: { animation:{duration:1500}, scales:{ y:{beginAtZero:false} } }
+});
+
+// Sorting function
+function sortTable(columnIndex) {
+  const table = document.getElementById("patientTable");
+  const tbody = table.tBodies[0];
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+  let asc = table.getAttribute("data-sort-dir") !== "asc";
+  table.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+  rows.sort((a,b)=>{
+    let cellA = a.cells[columnIndex].textContent.trim().toLowerCase();
+    let cellB = b.cells[columnIndex].textContent.trim().toLowerCase();
+    let numA = parseFloat(cellA), numB = parseFloat(cellB);
+    if(!isNaN(numA) && !isNaN(numB)) return asc ? numA-numB : numB-numA;
+    return asc ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+  });
+  rows.forEach(row => tbody.appendChild(row));
+}
+
+// Searching function
+document.getElementById("searchInput").addEventListener("keyup", function() {
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll("#patientTable tbody tr");
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
+  });
+});
+
+// Clickable patient rows
+document.querySelectorAll("#patientTable tbody tr").forEach(row => {
+  row.style.cursor = "pointer";
+  row.addEventListener("click", () => {
+    alert(`Viewing details for ${row.cells[0].textContent}`);
+  });
+});
+</script>
+</body>
+</html>

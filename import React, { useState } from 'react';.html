@@ -1,0 +1,391 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "/components/ui/card";
+import { Button } from "/components/ui/button";
+import { Input } from "/components/ui/input";
+import { Label } from "/components/ui/label";
+
+const HealthcareDashboard = () => {
+  const [activeRole, setActiveRole] = useState('patient');
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const PatientDashboard = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Upcoming Appointments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2</div>
+            <p className="text-xs text-muted-foreground">Next: Tomorrow, 10:00 AM</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Medications</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">All medications up to date</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Health Stats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Normal</div>
+            <p className="text-xs text-muted-foreground">Last check: 2 days ago</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Upcoming Appointments</CardTitle>
+          <CardDescription>Your scheduled medical appointments</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Annual Physical Exam</h4>
+                <p className="text-sm text-muted-foreground">Dr. Sarah Johnson</p>
+                <p className="text-sm">Tomorrow, 10:00 AM - 10:30 AM</p>
+              </div>
+              <Button variant="outline">Details</Button>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Dental Cleaning</h4>
+                <p className="text-sm text-muted-foreground">Dr. Michael Chen</p>
+                <p className="text-sm">Next Week, Tuesday, 2:00 PM</p>
+              </div>
+              <Button variant="outline">Details</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Current Medications</CardTitle>
+          <CardDescription>Your active prescriptions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Lisinopril</h4>
+                <p className="text-sm text-muted-foreground">10mg, once daily</p>
+              </div>
+              <div className="text-sm">Refill in 15 days</div>
+            </div>
+            <div className="flex justify-between items-center p-3 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Metformin</h4>
+                <p className="text-sm text-muted-foreground">500mg, twice daily</p>
+              </div>
+              <div className="text-sm">Refill in 20 days</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const DoctorDashboard = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-muted-foreground">4 completed, 4 pending</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Patient Messages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">5</div>
+            <p className="text-xs text-muted-foreground">Awaiting response</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Lab Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">Pending review</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Today's Schedule</CardTitle>
+          <CardDescription>Your appointments for today</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">John Smith</h4>
+                <p className="text-sm text-muted-foreground">Follow-up visit</p>
+              </div>
+              <div className="text-sm">9:00 AM - 9:30 AM</div>
+              <div>
+                <Button size="sm">Start Visit</Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Maria Garcia</h4>
+                <p className="text-sm text-muted-foreground">Annual physical</p>
+              </div>
+              <div className="text-sm">10:00 AM - 10:45 AM</div>
+              <div>
+                <Button size="sm" variant="outline">Prepare</Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Patient Alerts</CardTitle>
+          <CardDescription">Urgent notifications</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 border border-destructive rounded-lg bg-destructive/10">
+            <h4 className="font-semibold text-destructive">Abnormal Lab Results</h4>
+            <p className="text-sm">Patient: Robert Johnson - Elevated liver enzymes</p>
+            <Button variant="outline" size="sm" className="mt-2">Review</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const NurseDashboard = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Medication Due</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">Next hour: 3 medications</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vitals to Record</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-muted-foreground">Pending measurements</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Patient Calls</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4</div>
+            <p className="text-xs text-muted-foreground">Awaiting response</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Medication Schedule</CardTitle>
+          <CardDescription>Upcoming medication administration</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Room 204 - John Smith</h4>
+                <p className="text-sm text-muted-foreground">Lisinopril 10mg</p>
+              </div>
+              <div className="text-sm font-medium">Due: 9:00 AM</div>
+            </div>
+            <div className="flex justify-between items-center p-3 border rounded-lg">
+              <div>
+                <h4 className="font-semibold">Room 208 - Maria Garcia</h4>
+                <p className="text-sm text-muted-foreground">Metformin 500mg</p>
+              </div>
+              <div className="text-sm font-medium">Due: 9:30 AM</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Vital Signs Monitoring</CardTitle>
+          <CardDescription>Recent patient measurements</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">120/80</div>
+              <p className="text-sm text-muted-foreground">BP</p>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">98.6°F</div>
+              <p className="text-sm text-muted-foreground">Temp</p>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">72</div>
+              <p className="text-sm text-muted-foreground">Pulse</p>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">98%</div>
+              <p className="text-sm text-muted-foreground">O2 Sat</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-muted/40">
+      <header className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-primary">MedCare Dashboard</h1>
+            <div className="flex items-center space-x-4">
+              <div className="flex bg-muted p-1 rounded-lg">
+                <Button 
+                  variant={activeRole === 'patient' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setActiveRole('patient')}
+                >
+                  Patient
+                </Button>
+                <Button 
+                  variant={activeRole === 'doctor' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setActiveRole('doctor')}
+                >
+                  Doctor
+                </Button>
+                <Button 
+                  variant={activeRole === 'nurse' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setActiveRole('nurse')}
+                >
+                  Nurse
+                </Button>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
+                U
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold tracking-tight">
+            {activeRole === 'patient' && 'Patient Portal'}
+            {activeRole === 'doctor' && 'Doctor Dashboard'}
+            {activeRole === 'nurse' && 'Nurse Station'}
+          </h2>
+          <p className="text-muted-foreground">
+            {activeRole === 'patient' && 'Manage your health information and appointments'}
+            {activeRole === 'doctor' && 'Access patient records and manage your schedule'}
+            {activeRole === 'nurse' && 'Monitor patients and manage care tasks'}
+          </p>
+        </div>
+
+        <div className="flex space-x-2 mb-6">
+          <Button 
+            variant={activeTab === 'overview' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('overview')}
+          >
+            Overview
+          </Button>
+          <Button 
+            variant={activeTab === 'records' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('records')}
+          >
+            Records
+          </Button>
+          <Button 
+            variant={activeTab === 'messages' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('messages')}
+          >
+            Messages
+          </Button>
+        </div>
+
+        {activeTab === 'overview' && (
+          <>
+            {activeRole === 'patient' && <PatientDashboard />}
+            {activeRole === 'doctor' && <DoctorDashboard />}
+            {activeRole === 'nurse' && <NurseDashboard />}
+          </>
+        )}
+
+        {activeTab === 'records' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {activeRole === 'patient' && 'My Health Records'}
+                {activeRole === 'doctor' && 'Patient Records'}
+                {activeRole === 'nurse' && 'Patient Charts'}
+              </CardTitle>
+              <CardDescription>
+                {activeRole === 'patient' && 'Your complete medical history'}
+                {activeRole === 'doctor' && 'Access and update patient medical records'}
+                {activeRole === 'nurse' && 'Review and document patient information'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="p-8 text-center border-2 border-dashed rounded-lg">
+                <p className="text-muted-foreground">
+                  {activeRole === 'patient' && 'Select a record category to view details'}
+                  {activeRole === 'doctor' && 'Search for a patient to view their records'}
+                  {activeRole === 'nurse' && 'Select a patient to view their chart'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'messages' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Messages</CardTitle>
+              <CardDescription>
+                {activeRole === 'patient' && 'Communicate with your healthcare team'}
+                {activeRole === 'doctor' && 'Message patients and colleagues'}
+                {activeRole === 'nurse' && 'Communicate with patients and doctors'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="p-8 text-center border-2 border-dashed rounded-lg">
+                <p className="text-muted-foreground">No new messages</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default HealthcareDashboard;

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RBAC Medical Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+    .card { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .btn-upload { background-color: #0d6efd; color: #fff; }
+    .btn-upload:hover { background-color: #0b5ed7; }
+    .btn-download { background-color: #198754; color: #fff; }
+    .btn-download:hover { background-color: #157347; }
+    .btn-delete { background-color: #dc3545; color: #fff; }
+    .btn-delete:hover { background-color: #b02a37; }
+    .btn-emergency { background-color: #dc3545; color: #fff; }
+    .btn-emergency:hover { background-color: #b02a37; }
+  </style>
+</head>
+<body>
+
+<div class="container py-5">
+  <h1 class="mb-5 text-center">RBAC Medical Dashboard</h1>
+
+  <!-- Patient Document Upload -->
+  <div class="card mb-4" id="upload-card">
+    <div class="card-body">
+      <h5 class="card-title">Patient Document Upload</h5>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <input class="form-control" type="file" id="documentInput" accept=".pdf,.jpg,.jpeg,.png">
+        <button class="btn btn-upload" id="uploadBtn">Upload</button>
+      </div>
+      <div id="uploadMessage"></div>
+    </div>
+  </div>
+
+  <!-- Documents List -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Uploaded Documents</h5>
+      <ul class="list-group list-group-flush" id="docList"></ul>
+    </div>
+  </div>
+
+  <!-- Emergency Access / Break-Glass -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Emergency Access / Break-Glass</h5>
+      <div class="mb-3">
+        <label for="patientId" class="form-label">Patient ID</label>
+        <input type="text" class="form-control" id="patientId" placeholder="Enter patient ID">
+      </div>
+      <button id="emergencyBtn" class="btn btn-emergency">Request Emergency Access</button>
+      <div id="emergencyMessage" class="mt-2"></div>
+    </div>
+  </div>
+
+  <!-- Emergency Log -->
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Emergency Access Log</h5>
+      <ul class="list-group list-group-flush" id="emergencyLog"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // ---------------- RBAC SETTINGS ----------------
+  const currentUserRole = "doctor"; // "patient", "doctor", "admin", etc.
+  const documentRoles = ["patient", "doctor", "admin"]; // roles allowed for document access
+  const emergencyRoles = ["doctor", "head_nurse"]; // roles allowed for emergency access
+
+  // ---------------- DOCUMENTS ----------------
+  let documents = [
+    { name: "Xray_01.jpg", uploadedBy: "patient1" },
+    { name: "Prescription_01.pdf", uploadedBy: "patient2" }
+  ];
+
+  const docList = document.getElementById("docList");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const documentInput = document.getElementById("documentInput");
+  const uploadCard = document.getElementById("upload-card");
+  const uploadMessage = document.getElementById("uploadMessage");
+
+  // Hide upload if not patient
+  if (currentUserRole !== "patient") uploadCard.style.display = "none";
+
+  // Upload document
+  uploadBtn.addEventListener("click", () => {
+    const file = documentInput.files[0];
+    if (!file) {
+      uploadMessage.innerHTML = `<div class="alert alert-danger p-2">Please select a document to upload.</div>`;
+      return;
+    }
+    documents.push({ name: file.name, uploadedBy: "currentPatient" });
+    renderDocuments();
+    documentInput.value = "";
+    uploadMessage.innerHTML = `<div class="alert alert-success p-2">Document <strong>${file.name}</strong> uploaded successfully!</div>`;
+    setTimeout(() => { uploadMessage.innerHTML = ""; }, 3000);
+  });
+
+  function renderDocuments() {
+    docList.innerHTML = "";
+    documents.forEach((doc, index) => {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.textContent = doc.name;
+
+      const btnGroup = document.createElement("div");
+
+      if (["patient","doctor"].includes(currentUserRole)) {
+        const downloadBtn = document.createElement("button");
+        downloadBtn.className = "btn btn-sm btn-download me-2";
+        downloadBtn.textContent = "Download";
+        downloadBtn.onclick = () => {
+          uploadMessage.innerHTML = `<div class="alert alert-info p-2">Downloading <strong>${doc.name}</strong>...</div>`;
+          setTimeout(() => { uploadMessage.innerHTML = ""; }, 3000);
+        };
+        btnGroup.appendChild(downloadBtn);
+      }
+
+      if (currentUserRole === "admin") {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn btn-sm btn-delete";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = () => {
+          documents.splice(index,1);
+          renderDocuments();
+          uploadMessage.innerHTML = `<div class="alert alert-warning p-2">Document <strong>${doc.name}</strong> deleted.</div>`;
+          setTimeout(() => { uploadMessage.innerHTML = ""; }, 3000);
+        };
+        btnGroup.appendChild(deleteBtn);
+      }
+
+      li.appendChild(btnGroup);
+      docList.appendChild(li);
+    });
+  }
+
+  renderDocuments();
+
+  // ---------------- EMERGENCY ACCESS ----------------
+  const emergencyBtn = document.getElementById("emergencyBtn");
+  const patientIdInput = document.getElementById("patientId");
+  const emergencyMessage = document.getElementById("emergencyMessage");
+  const emergencyLog = document.getElementById("emergencyLog");
+  let logs = [];
+
+  if (!emergencyRoles.includes(currentUserRole)) {
+    emergencyBtn.disabled = true;
+    emergencyMessage.innerHTML = `<div class="alert alert-warning p-2">You do not have permission to trigger emergency access.</div>`;
+  }
+
+  emergencyBtn.addEventListener("click", () => {
+    const patientId = patientIdInput.value.trim();
+    if (!patientId) {
+      emergencyMessage.innerHTML = `<div class="alert alert-danger p-2">Please enter a Patient ID.</div>`;
+      return;
+    }
+
+    const approved = confirm("Emergency access request needs approval. Approve now?");
+    if (!approved) {
+      emergencyMessage.innerHTML = `<div class="alert alert-info p-2">Emergency access request denied.</div>`;
+      return;
+    }
+
+    const timestamp = new Date().toLocaleString();
+    const logEntry = `${timestamp} - Role: ${currentUserRole}, Patient ID: ${patientId} - Emergency Access Granted`;
+    logs.push(logEntry);
+    renderLogs();
+
+    emergencyMessage.innerHTML = `<div class="alert alert-success p-2">Emergency access granted for Patient ID <strong>${patientId}</strong>.</div>`;
+    setTimeout(() => { emergencyMessage.innerHTML = ""; }, 5000);
+    patientIdInput.value = "";
+  });
+
+  function renderLogs() {
+    emergencyLog.innerHTML = "";
+    logs.slice().reverse().forEach(log => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.textContent = log;
+      emergencyLog.appendChild(li);
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkup SMS Notification</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f8ff;
+    text-align: center;
+    padding: 50px;
+  }
+  input, button {
+    padding: 10px;
+    margin: 5px;
+    width: 250px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+  }
+</style>
+</head>
+<body>
+
+<h2>Send SMS After Checkup</h2>
+
+<input type="text" id="patientName" placeholder="Patient Name"><br>
+<input type="text" id="phoneNumber" placeholder="Phone Number (+91XXXXXXXXXX)"><br>
+<input type="date" id="appointmentDate"><br>
+<button onclick="sendSMS()">Send SMS</button>
+
+<script>
+function sendSMS() {
+    const patientName = document.getElementById("patientName").value;
+    const phoneNumber = document.getElementById("phoneNumber").value;
+    const appointmentDate = document.getElementById("appointmentDate").value;
+
+    if(!patientName || !phoneNumber || !appointmentDate){
+        alert("Please fill all fields");
+        return;
+    }
+
+    // Fast2SMS API example
+    const apiKey = "YOUR_FAST2SMS_API_KEY"; // replace with your key
+    const message = `Hello ${patientName}, your checkup on ${appointmentDate} is completed. Thank you!`;
+
+    fetch("https://www.fast2sms.com/dev/bulkV2", {
+        method: "POST",
+        headers: {
+            "authorization": apiKey,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            route: "v3",
+            sender_id: "FSTSMS",
+            message: message,
+            language: "english",
+            numbers: phoneNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.return){
+            alert("SMS sent successfully!");
+        } else {
+            alert("Failed to send SMS: " + JSON.stringify(data));
+        }
+    })
+    .catch(err => alert("Error: " + err));
+}
+</script>
+
+</body>
+</html>

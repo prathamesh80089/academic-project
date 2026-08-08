@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Razorpay Payment Demo</title>
+<style>
+body {
+  display:flex; justify-content:center; align-items:center; height:100vh; background:#f4f6fb; font-family:sans-serif;
+}
+.payment-btn {
+  padding:14px 28px;
+  background:#10b981;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:1.1rem;
+  font-weight:600;
+  transition:0.3s;
+}
+.payment-btn:hover { background:#059669; }
+</style>
+</head>
+<body>
+
+<button class="payment-btn" onclick="payNow()">Pay ₹500</button>
+
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+function payNow() {
+  var options = {
+    "key": "YOUR_KEY_ID", // Replace with your Razorpay Test Key ID
+    "amount": 500*100, // Amount in paise (₹500)
+    "currency": "INR",
+    "name": "Doctor Consultation",
+    "description": "Chat Consultation Fee",
+    "image": "https://your-logo-url.com/logo.png",
+    // Order ID can be generated on server, for demo we skip
+    "handler": function (response){
+      alert("Payment successful!\nPayment ID: " + response.razorpay_payment_id);
+      // Optional: store this ID in your database via fetch/AJAX
+    },
+    "prefill": {
+      "name": "Patient Name",
+      "email": "patient@example.com",
+      "contact": "9999999999"
+    },
+    "theme": {
+      "color": "#3b82f6"
+    }
+  };
+  var rzp1 = new Razorpay(options);
+  rzp1.open();
+}
+</script>
+
+</body>
+</html>

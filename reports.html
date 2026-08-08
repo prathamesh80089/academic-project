@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {margin:0;font-family:'Inter',sans-serif;display:flex;background:#f1f5f9;}
+  .sidebar {width:250px;background:#183153;color:#fff;display:flex;flex-direction:column;min-height:100vh;padding:20px 0;}
+  .sidebar h2 {text-align:center;font-size:1.5rem;margin-bottom:2rem;}
+  .sidebar ul {list-style:none;}
+  .sidebar ul li {padding:15px 20px;cursor:pointer;transition:background .3s;display:flex;align-items:center;}
+  .sidebar ul li:hover {background:#0f2642;}
+  .main-content {flex:1;padding:30px;}
+  .header {display:flex;justify-content:space-between;align-items:center;}
+  .header h1 {font-size:1.8rem;font-weight:600;}
+  .header h1 span {color:#3b82f6;}
+  table {width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);border-collapse:collapse;margin-top:20px;}
+  table th,table td {padding:15px;text-align:left;border-bottom:1px solid #e5e7eb;}
+  table th {background:#f9fafb;font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Admin</h2>
+    <ul>
+      <li onclick="location.href='admin-dashboard.html'">📊 Dashboard</li>
+      <li onclick="location.href='user.html'">👥 Users</li>
+      <li onclick="location.href='report.html'">📑 Reports</li>
+      <li>💬 Messages</li>
+      <li onclick="location.href='setting.html'">⚙ Settings</li>
+      <li style="margin-top:auto;color:#f87171;">🚪 Logout</li>
+    </ul>
+  </div>
+  <div class="main-content">
+    <div class="header">
+      <h1>All <span>Reports</span></h1>
+    </div>
+    <table>
+      <tr><th>ID</th><th>Title</th><th>Date</th><th>Status</th></tr>
+      <tr><td>001</td><td>System Security Audit</td><td>2025-09-14</td><td>Completed</td></tr>
+      <tr><td>002</td><td>Data Breach Attempt</td><td>2025-09-10</td><td>In Progress</td></tr>
+      <tr><td>003</td><td>Monthly Users Growth</td><td>2025-09-01</td><td>Pending</td></tr>
+    </table>
+  </div>
+</body>
+</html>

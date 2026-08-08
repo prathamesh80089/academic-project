@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Medical Dashboard</title>
+
+<!-- Bootstrap for styling -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- QRCode.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f8ff;
+}
+.container {
+    margin-top: 30px;
+    max-width: 600px;
+}
+h2 {
+    margin-bottom: 20px;
+}
+#qrcode {
+    margin-top: 20px;
+}
+.reschedule-info, .sms-info {
+    margin-top: 15px;
+    padding: 15px;
+    background: #e0f7fa;
+    border-radius: 10px;
+}
+button {
+    margin: 5px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>RBAC Medical Appointment System</h2>
+
+    <!-- Appointment Booking -->
+    <h4>Book Appointment</h4>
+    <form id="appointmentForm">
+        <input type="text" id="patientName" class="form-control mb-2" placeholder="Patient Name" required>
+        <input type="text" id="doctorName" class="form-control mb-2" placeholder="Doctor Name" required>
+        <input type="date" id="appointmentDate" class="form-control mb-2" required>
+        <input type="time" id="appointmentTime" class="form-control mb-2" required>
+        <button type="submit" class="btn btn-primary w-100">Book Appointment & Generate QR</button>
+    </form>
+
+    <!-- QR Code Display -->
+    <div id="qrcode"></div>
+
+    <!-- Reschedule -->
+    <h4 class="mt-4">Reschedule Appointment</h4>
+    <form id="rescheduleForm">
+        <input type="date" id="newDate" class="form-control mb-2" required>
+        <input type="time" id="newTime" class="form-control mb-2" required>
+        <button type="submit" class="btn btn-warning w-100">Reschedule Appointment</button>
+    </form>
+    <div class="reschedule-info" id="rescheduleInfo" style="display:none;"></div>
+
+    <!-- SMS Notification -->
+    <h4 class="mt-4">Send SMS After Checkup</h4>
+    <input type="text" id="smsNumber" class="form-control mb-2" placeholder="Patient Phone Number (+91XXXXXXXXXX)">
+    <button onclick="sendSMS()" class="btn btn-success w-100">Send SMS</button>
+    <div class="sms-info" id="smsInfo" style="display:none;"></div>
+</div>
+
+<script>
+// Simulated RBAC user role
+const userRole = "patient"; // only patient can see QR code
+
+let appointment = null;
+
+// Appointment booking + QR code
+document.getElementById('appointmentForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const patientName = document.getElementById('patientName').value;
+    const doctorName = document.getElementById('doctorName').value;
+    const date = document.getElementById('appointmentDate').value;
+    const time = document.getElementById('appointmentTime').value;
+
+    appointment = {
+        patientName, doctorName, date, time,
+        appointmentID: "APPT"+Math.floor(Math.random()*1000000)
+    };
+
+    alert("Appointment booked successfully!");
+
+    if(userRole === "patient"){
+        const qrData = JSON.stringify(appointment);
+        generateQRCode(qrData);
+    } else {
+        alert("You do not have permission to view the QR code.");
+    }
+});
+
+// QR code generation function
+function generateQRCode(data){
+    const qrcodeContainer = document.getElementById('qrcode');
+    qrcodeContainer.innerHTML = "";
+    QRCode.toCanvas(qrcodeContainer, data, { width: 200 }, function(err){
+        if(err) console.error(err);
+    });
+}
+
+// Reschedule appointment
+document.getElementById('rescheduleForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!appointment){
+        alert("Book an appointment first!");
+        return;
+    }
+
+    const newDate = document.getElementById('newDate').value;
+    const newTime = document.getElementById('newTime').value;
+
+    appointment.date = newDate;
+    appointment.time = newTime;
+
+    document.getElementById('rescheduleInfo').style.display = "block";
+    document.getElementById('rescheduleInfo').innerHTML = `
+        <strong>Rescheduled Appointment:</strong><br>
+        Patient: ${appointment.patientName}<br>
+        Doctor: ${appointment.doctorName}<br>
+        Date: ${appointment.date}<br>
+        Time: ${appointment.time}<br>
+        Appointment ID: ${appointment.appointmentID}
+    `;
+
+    // Regenerate QR code with updated info
+    if(userRole === "patient"){
+        generateQRCode(JSON.stringify(appointment));
+    }
+});
+
+// Simulated SMS notification
+function sendSMS(){
+    const number = document.getElementById('smsNumber').value;
+    if(!appointment){
+        alert("Book an appointment first!");
+        return;
+    }
+    if(!number){
+        alert("Enter a phone number!");
+        return;
+    }
+
+    // Simulation (replace this fetch with real SMS API)
+    console.log(`Sending SMS to ${number}: Your checkup on ${appointment.date} is completed.`);
+
+    const smsInfo = document.getElementById('smsInfo');
+    smsInfo.style.display = "block";
+    smsInfo.innerHTML = `SMS sent to ${number}: Your checkup on ${appointment.date} is completed.`;
+    alert("SMS sent successfully (simulated)!");
+}
+</script>
+
+</body>
+</html>
